@@ -426,4 +426,4 @@ class Structure(object):
     def _scale(self,lambdaim):
         """Compute plate scale in arc sec per pixel, lamda in nm"""
         theta = lambdaim * 1.e-9 / (2. * self.pupil_diameter)
-        return 206264.8 * theta / self.pixdiam
+        return 206264.8 * theta
