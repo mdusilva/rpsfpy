@@ -415,7 +415,7 @@ class Structure(object):
                     try:
                         hdu.header['scale'] = (self._scale(lambdaim), "arcsec per pixel")
                     except KeyError:
-                        hdu.header.update(key="pscale", value=self._pscale(lambdaim), comment="arcsec per pixel")
+                        hdu.header.update(key="pscale", value=self._scale(lambdaim), comment="arcsec per pixel")
                     hdu.writeto(out, clobber=True)
                 else:
                     raise IOError("File must be of FITS format")
