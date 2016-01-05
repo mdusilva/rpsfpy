@@ -29,7 +29,7 @@ setup(
       ],
       install_requires = ["numpy", "scipy", "pyfits>=3.1"],
       package_data = {
-          '' : ['masknn.fits']
+          '' : ['masknn.fits','default.cfg']
       },
       zip_safe=False
 )
