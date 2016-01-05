@@ -28,3 +28,6 @@ Usage example:
 #compute PSF
 
 >>> psf = structure.psf(objpos, lambdaim, out='psf.fits')
+
+
+In order to input the system and atmospheric parameters edit the file "default.cfg"
