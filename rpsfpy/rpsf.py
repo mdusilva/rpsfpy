@@ -566,7 +566,7 @@ class Structure(object):
 #        np.savetxt("dphilgs.dat", dphilgs)
         return dphilgs
 
-    def otf(self, objectlist, lambdaim, out=None, **kwargs):
+    def otf(self, objectlist, lambdaim, out=None, parallel='auto', **kwargs):
         """Compute OTF from Structrure functions"""
         otf_array = []
         for objectpos in objectlist:
