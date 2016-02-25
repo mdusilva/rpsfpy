@@ -244,6 +244,8 @@ class Structure(object):
     def __init__(self, cfile='default.cfg'):
         if cfile == 'default.cfg':
             configuration_file = os.path.join(os.path.dirname(__file__), cfile)
+        else:
+            configuration_file = cfile
         atmosphere, zm, D, pixels, ngs_array, lgs_array, lgs_height =  parameters.read(configuration_file)
         self.Zernike = zernike.Zernike()
         self.pixdiam = pixels  #must be integer
