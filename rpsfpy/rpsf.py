@@ -572,10 +572,10 @@ class Structure(object):
         for objectpos in objectlist:
             if  "hngs" in kwargs:
                 dphings = self.Dngs(objectpos, hngs=kwargs[hngs])
-                dphilgs = self.Dlgs(objectpos, hngs=kwargs[hngs])
+                dphilgs = self.Dlgs(objectpos, parallel=parallel, hngs=kwargs[hngs])
             else:
                 dphings = self.Dngs(objectpos)
-                dphilgs = self.Dlgs(objectpos)
+                dphilgs = self.Dlgs(objectpos, parallel=parallel)
             if "fc_constant" in kwargs:
                 dfitting = self.Dfitting(lambdaim, fc_constant=kwargs[fc_constant])
             else:
@@ -599,7 +599,7 @@ class Structure(object):
                 print "An error ocurred while writing to file "+str(out)
         return otf_array
 
-    def psf(self, objectlist, lambdaim, out=None, otfs=None, **kwargs):
+    def psf(self, objectlist, lambdaim, out=None, otfs=None, parallel='auto', **kwargs):
         """Compute PSF from Structrure functions"""
         psf_array = []
 #        print "Objects coordinates = ", objectlist
@@ -611,7 +611,7 @@ class Structure(object):
 #        print "Pupil D = ", self.pupil_diameter
 #        print "dr0 = ", self.dr0
 #        print "Zernike modes corrected= ", self.nz1
-        otf_array = self.otf(objectlist, lambdaim, out=otfs, **kwargs)
+        otf_array = self.otf(objectlist, lambdaim, out=otfs, parallel=parallel, **kwargs)
         for otf in otf_array:
             psf = np.abs(np.fft.fftshift(np.fft.ifft2(otf)))
             psf = psf / np.sum(psf)
