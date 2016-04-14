@@ -19,6 +19,14 @@ maskfile = os.path.join(os.path.dirname(__file__), r'masknn.fits')
 z_handle = pyfits.open(maskfile)
 zcoef_mask = z_handle[0].data
 
+def compmask(nz1, nz2):
+    first = 2
+    masku = np.zeros((nz1,nz2))
+    for i in range(nz1):
+        for j in range(i, nz2):
+            masku[i,j] = (zernike.noll2zern(i+first)[1] % 2) == (zernike.noll2zern(j+first)[1] % 2)
+    return masku.astype(int)
+
 #def _chassat_integral(x, zeta=None, Lam=None, w=None, n1=None, n2=None, m1=None, m2=None, z1=None, z2=None):
 #    """Inner integral to compute the correlations (Chassat)"""
 #    #compute bessel functions
@@ -269,6 +277,10 @@ class Structure(object):
         self.ngsvmatrices = np.zeros((2, 2, 2*self.pixdiam, 2*self.pixdiam))
 #        self.lgsnewzernikes = np.zeros((15, self.nz1-4, self.pixdiam, self.pixdiam))
         self.ngsnewzernikes = np.zeros((2, 2, self.pixdiam, self.pixdiam))
+        if self.nz1 > 980:
+            self.zcoef_mask = compmask(self.nz1, self.nz2).T
+        else:
+            self.zcoef_mask = zcoef_mask
 
     def correl_swsw(self, angle, nz1, nz2, h1, h2, method='quad'):
         """Correlation coeficients between two spherical waves."""
@@ -472,7 +484,7 @@ class Structure(object):
         modes = []
         for i in np.arange(4,self.nz1):
             for j in np.arange(i,self.nz2):
-                if zcoef_mask[j-2,i-2]:
+                if self.zcoef_mask[j-2,i-2]:
                     modes.append((i,j))
         
         modes = np.array(modes)
@@ -557,13 +569,6 @@ class Structure(object):
             r_idx = combilgs[b_idx][0]
             term4 = term4 + 2. * self.sigmaslgs[l_idx]*self.sigmaslgs[r_idx] * np.tensordot(propervalues[2 + nlgs + b_idx], lgsvmatrices[1+nlgs+nlgs+b_idx], axes=1)
         dphilgs = term1 - term2 + term3 + term4
-#        dphilgs = np.tensordot(self.propervalues[0],self.lgsvmatrices[0],axes=1) - 2. * np.tensordot(self.propervalues[2:6] * self.sigmaslgs.reshape((-1,1)), self.lgsvmatrices[5:9], axes=([0,1],[0,1])) + \
-#                 self.sigmaslgs[0]**2. * np.tensordot(self.propervalues[1], self.lgsvmatrices[1], axes=1) + self.sigmaslgs[1]**2. * np.tensordot(self.propervalues[1], self.lgsvmatrices[2], axes=1) + \
-#                 self.sigmaslgs[2]**2. * np.tensordot(self.propervalues[1], self.lgsvmatrices[3], axes=1) + self.sigmaslgs[3]**2. * np.tensordot(self.propervalues[1], self.lgsvmatrices[4], axes=1) + \
-#                 2. * self.sigmaslgs[0]*self.sigmaslgs[1] * np.tensordot(self.propervalues[6], self.lgsvmatrices[9], axes=1) + 2. * self.sigmaslgs[0]*self.sigmaslgs[3] * np.tensordot(self.propervalues[7], self.lgsvmatrices[10], axes=1) + \
-#                 2. * self.sigmaslgs[1]*self.sigmaslgs[2] * np.tensordot(self.propervalues[8], self.lgsvmatrices[11], axes=1) + 2. * self.sigmaslgs[2]*self.sigmaslgs[3] * np.tensordot(self.propervalues[9], self.lgsvmatrices[12], axes=1) + \
-#                 2. * self.sigmaslgs[1]*self.sigmaslgs[3] * np.tensordot(self.propervalues[10], self.lgsvmatrices[13], axes=1) + 2. * self.sigmaslgs[0]*self.sigmaslgs[2] * np.tensordot(self.propervalues[11], self.lgsvmatrices[14], axes=1)
-#        np.savetxt("dphilgs.dat", dphilgs)
         return dphilgs
 
     def otf(self, objectlist, lambdaim, out=None, parallel='auto', **kwargs):
