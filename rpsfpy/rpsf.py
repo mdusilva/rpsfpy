@@ -432,20 +432,20 @@ class Structure(object):
         return dphings
 
     def _compute_lgscoef(self, modes, nlgs, hngs, hlgs, combilgs, alphalgs):
-        coefmatrix = np.zeros((2 + nlgs + len(combilgs),len(modes),len(modes)))
-        for m in modes:
-            i = m[0]
-            j = m[1]
-            coefmatrix[0,i-4,j-4] = self.correl_swsw(0.,i, j, hngs, hngs)
-            coefmatrix[1,i-4,j-4] = self.correl_swsw(0.,i, j, hlgs, hlgs)
+        coefmatrix = np.zeros((2 + nlgs + len(combilgs),len(modes)))
+        for l in xrange(len(modes)):
+            i = modes[l][0]
+            j = modes[l][1]
+            coefmatrix[0,l] = self.correl_swsw(0.,i, j, hngs, hngs)
+            coefmatrix[1,l] = self.correl_swsw(0.,i, j, hlgs, hlgs)
             for i_lgs in xrange(nlgs):
-                coefmatrix[2+i_lgs,i-4,j-4] = self.correl_swsw(alphalgs[i_lgs,i_lgs],i, j, hngs, hlgs)
+                coefmatrix[2+i_lgs,l] = self.correl_swsw(alphalgs[i_lgs,i_lgs],i, j, hngs, hlgs)
             for i_lgs in xrange(len(combilgs)):
-                coefmatrix[2+nlgs+i_lgs,i-4,j-4] = self.correl_swsw(alphalgs[combilgs[i_lgs][1],combilgs[i_lgs][0]],i, j, hlgs, hlgs)
+                coefmatrix[2+nlgs+i_lgs,l] = self.correl_swsw(alphalgs[combilgs[i_lgs][1],combilgs[i_lgs][0]],i, j, hlgs, hlgs)
 
-            if j != i:
-                for k in range(2 + nlgs + len(combilgs)):
-                    coefmatrix[k,j-4,i-4] = coefmatrix[k,i-4,j-4]
+#            if j != i:
+#                for k in range(2 + nlgs + len(combilgs)):
+#                    coefmatrix[k,j-4,i-4] = coefmatrix[k,i-4,j-4]
         return coefmatrix, modes
 
     def Dlgs(self, objectpos, hngs = 10.e20, parallel='auto'):
@@ -520,12 +520,16 @@ class Structure(object):
             pool.join()
             for c in xrange(cpus):
                 values_received, modes_received = results[c].get()
-                for m in modes_received:
-                    lgscoefmatrix[:,m[0]-4,m[1]-4] = values_received[:,m[0]-4,m[1]-4]
+                for l in xrange(len(modes_received)):
+                    i = modes_received[l][0]-4
+                    j = modes_received[l][1]-4
+                    lgscoefmatrix[:,i,j] = values_received[:,l]
         else:
             compute_lgscoef_temp, received_modes = self._compute_lgscoef(modes,nlgs,hngs,self.hlgs,combilgs,alphalgs)
-            for m in modes:
-                    lgscoefmatrix[:,m[0]-4,m[1]-4] = compute_lgscoef_temp[:,m[0]-4, m[1]-4]
+            for l in xrange(len(modes)):
+                    i = modes[l][0]-4
+                    j = modes[l][1]-4
+                    lgscoefmatrix[:,i,j] = compute_lgscoef_temp[:,l]
 
         for i in np.arange(4,self.nz1):
             for j in np.arange(i,self.nz2):
