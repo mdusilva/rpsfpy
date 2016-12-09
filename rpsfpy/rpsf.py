@@ -608,33 +608,27 @@ class Structure(object):
                 print "An error ocurred while writing to file "+str(out)
         return otf_array
 
-    def psf(self, objectlist, lambdaim, out=None, otfs=None, parallel='auto', **kwargs):
+    def psf(self, objectlist, lambdaim, scale=1, out=None, otfs=None, parallel='auto', **kwargs):
         """Compute PSF from Structrure functions"""
+        if scale < 1: raise ValueError("scale must be >= 1")
         psf_array = []
-#        print "Objects coordinates = ", objectlist
-#        print "NGS coordinates = ", self.ngspos
-#        print "LGS coordinates = ", self.lgspos
-#        print "D pixels = ", self.pixdiam
-#        print "CN2 profile = ", self.cn2
-#        print "H profile = ", self.h_profile
-#        print "Pupil D = ", self.pupil_diameter
-#        print "dr0 = ", self.dr0
-#        print "Zernike modes corrected= ", self.nz1
         otf_array = self.otf(objectlist, lambdaim, out=otfs, parallel=parallel, **kwargs)
         for otf in otf_array:
-            psf = np.abs(np.fft.fftshift(np.fft.ifft2(otf)))
+            psf = self._resample(otf, scale)
             psf = psf / np.sum(psf)
             psf_array.append(psf)
         psf_array = np.array(psf_array)
+        n1 = self.pixdiam * 2
+        n2 = len(psf)
         if out:
             try:
                 filename, fileExtension = os.path.splitext(out)
                 if fileExtension == ".fits" or fileExtension == ".FITS":
                     hdu = pyfits.PrimaryHDU(psf_array)
                     try:
-                        hdu.header['scale'] = (self._scale(lambdaim), "arcsec per pixel")
+                        hdu.header['scale'] = (self._scale(lambdaim)*(float(n1)/float(n2)), "arcsec per pixel")
                     except KeyError:
-                        hdu.header.update(key="pscale", value=self._scale(lambdaim), comment="arcsec per pixel")
+                        hdu.header.update(key="pscale", value=self._scale(lambdaim)*(float(n1)/float(n2)), comment="arcsec per pixel")
                     hdu.writeto(out, clobber=True)
                 else:
                     raise IOError("File must be of FITS format")
@@ -646,4 +640,14 @@ class Structure(object):
         """Compute plate scale in arc sec per pixel, lamda in nm"""
         theta = lambdaim * 1.e-9 / (2. * self.pupil_diameter)
         return 206264.8 * theta
+
+    def _resample(self, otf, zoom):
+        """Resample the PSF"""
+        n_otf = self.pixdiam * 2
+        n_pad = (n_otf * zoom - n_otf) / 2.
+        n_pad = int(n_pad)
+        a = np.pad(otf, n_pad, 'constant')
+        a = np.fft.ifft2(a)
+        a = np.fft.fftshift(a)
+        return np.abs(a)
         
