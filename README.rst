@@ -14,7 +14,7 @@ Usage example:
 
 #Sctructure class instance
 
->>> structure = rpsfpy.Structure() # can also give file as input
+>>> structure = rpsfpy.Structure() # can also give file as input:
 >>> structure = rpsfpy.Structure('foobar.cfg')
 
 #Object position in the field in arcsec
@@ -29,5 +29,32 @@ Usage example:
 
 >>> psf = structure.psf(objpos, lambdaim, out='psf.fits')
 
+#By default the program will run in parallel using all available cores.
+#To specify the number of cores do:
 
-In order to input the system and atmospheric parameters edit the file "default.cfg"
+>>> psf = structure.psf(objpos, lambdaim, out='psf.fits', parallel=2) #2 cores
+
+
+The parameters included in the configuration file are the atmospheric parameters, 
+AO system parameters and image parameters.
+
+The contents of the default configuration file ("default.cfg") are:
+
+[atmosphere]
+r0 = 41.475
+cn2 profile = 0.7,0.3
+h profile = 0.0,10000.0
+l0 = 25
+
+[AO system]
+ngs = 0., 0.
+lgs = 32.0,32.0,32.0,-32.0,-32.0,32.0,-32.0,-32.0
+lgs altitude = 90000.
+zernike number = 60
+telescope diameter = 8
+
+[image]
+pixel diameter = 128
+
+In order to use a different configuration file, copy these contents to a new file
+and edit as desired.
