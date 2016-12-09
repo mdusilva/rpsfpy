@@ -10,7 +10,7 @@ import zernike, example
 import copy_reg
 from types import *
 
-__version__ = '0.2.2'
+__version__ = '0.2.4'
 
 def _pickle_method(method):
       func_name = method.im_func.__name__
