@@ -12,49 +12,33 @@ Usage example:
 >>> import numpy as np
 >>> import rpsfpy
 
-#Sctructure class instance
+#height of atmospheric layers
 
->>> structure = rpsfpy.Structure() # can also give file as input:
->>> structure = rpsfpy.Structure('foobar.cfg')
+>>> h = [0.,10000.]
 
-#Object position in the field in arcsec
+#Cn2 values (relative)
 
->>> objpos = np.array(([[0.,0.]]))
+>>> cn2 = [0.7,0.3]
+
+#Instantiate atmosphere object for seeing = 0.8''
+
+>>> a = rpsfpy.Atmosphere(rzero=0.12634, cn2_profile=cn2, h_profile=h,outer_scale=25.)
+
+#Instantiate a PSF reconstructor object using GALACSI AO with
+#NGS at 50 arcsec, pupil sampled at 128 pix and 'python' integrator
+
+>>> r = rpsfpy.Reconstruct(pixdiam=128., ao_system="GALACSI", ngspos=[[50.,0.]], atmosphere=a,integrator='python')
+
+#Objects positions in the field in arcsec
+
+>>> objects = [[0.,0.], [0., 32.]]
 
 #Lambda in nm
 
->>> lambdaim = 600
+>>> lambdaim = 640
 
 #compute PSF
 
->>> psf = structure.psf(objpos, lambdaim, out='psf.fits')
+>>> psf = r.psf(objects, lambdaim., out="psfs.fits")
 
-#By default the program will run in parallel using all available cores.
-#To specify the number of cores do:
-
->>> psf = structure.psf(objpos, lambdaim, out='psf.fits', parallel=2) #2 cores
-
-
-The parameters included in the configuration file are the atmospheric parameters, 
-AO system parameters and image parameters.
-
-The contents of the default configuration file ("default.cfg") are:
-
-[atmosphere]
-r0 = 41.475
-cn2 profile = 0.7,0.3
-h profile = 0.0,10000.0
-l0 = 25
-
-[AO system]
-ngs = 0., 0.
-lgs = 32.0,32.0,32.0,-32.0,-32.0,32.0,-32.0,-32.0
-lgs altitude = 90000.
-zernike number = 60
-telescope diameter = 8
-
-[image]
-pixel diameter = 128
-
-In order to use a different configuration file, copy these contents to a new file
-and edit as desired.
+#In this example outputs FITS file 'psf.fits'

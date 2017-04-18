@@ -5,12 +5,12 @@ GLAO PSF reconstruction in Python
 
 """
 
-from rpsf import polar2, Structure
-import zernike, example
+from rpsf import polar2, Atmosphere, Reconstruct, StructureNGS, StructureLGS, AOsystem, StructureFit
+import zernike
 import copy_reg
 from types import *
 
-__version__ = '0.2.4'
+__version__ = '0.3.1'
 
 def _pickle_method(method):
       func_name = method.im_func.__name__

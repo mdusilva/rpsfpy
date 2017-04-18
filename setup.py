@@ -29,7 +29,7 @@ setup(
       ],
       install_requires = ["numpy", "scipy", "pyfits>=3.1"],
       package_data = {
-          '' : ['masknn.fits','default.cfg']
+          '' : ['masknn.fits','aofile.json', 'pcdata/pclib.json']
       },
       zip_safe=False
 )
