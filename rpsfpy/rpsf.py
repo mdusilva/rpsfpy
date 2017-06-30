@@ -1,41 +1,13 @@
 """
-RPSFpy - PSF reconstruction for GLAO
-
-This is a set of tools to reconstruct PSFs of GLAO systems, taking
-into account the anisoplanetism effect.
-
-Method
-------
-The PSF estimation method is the one described in [1]. The basic idea is to approximate the 
-residual phase in WFM considering the most dominant source of variance, the effect of anisoplanatism.
-The PSF is estimated via the OTF computed from the structure function. The structure function is approximated 
-by the sum of three components, where only the effect of anisoplanetism and the fitting error are considered. 
-These effects are related to the AO correction by LGSs and one NGS.
-
-
-Features
---------
-
-Inputs
-------
-
-Output
-------
-
-Example
--------
-
-[1] Villecroze, R., "Modelisation d'un systeme d'optique adaptative a
-grand champ pour la reconstruction de la reponse
-impulsionnelle multi-spectrale des futurs
-spectro-imageurs 3D du VLT et de l'ELT",  Lyon: Universite Claude Bernard Lyon 1, 2014.
+Module with functions to compute estimation of PSFs (and/or OTFs). Includes functions to compute structure functions.
 """
 import os
 
 import numpy as np
-from scipy.special import jv
-from scipy.integrate import trapz, quad, romberg, IntegrationWarning
-from scipy import signal
+import scipy.special
+import scipy.integrate
+#from scipy.special import jv
+#from scipy.integrate import trapz, quad, romberg
 import itertools
 import zernike
 try:
@@ -46,11 +18,11 @@ import json
 import chassat
 
 import multiprocessing
-from multiprocessing import Pool
-from multiprocessing import cpu_count
+#from multiprocessing import Pool
+#from multiprocessing import cpu_count
 
 import copy_reg
-from types import *
+from types import MethodType
 import warnings
 import logging
 import logging.handlers
@@ -58,21 +30,22 @@ import logging.handlers
 warnings.filterwarnings("ignore", message="The integral is probably divergent, or slowly convergent.")
 #create logger
 logger = logging.getLogger(__name__)
+"""show the module activity in the terminal and store debug details in a log file - **debug.log**."""
 logger.setLevel(logging.DEBUG)
 
  # create console handler and set level to info
-handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+_handler = logging.StreamHandler()
+_handler.setLevel(logging.INFO)
+_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+_handler.setFormatter(_formatter)
+logger.addHandler(_handler)
 
 # create error file handler and set level to debug
-handler = logging.handlers.RotatingFileHandler(os.path.join(os.path.dirname(__file__), "debug.log"),"w", maxBytes=1024*1024, backupCount=1, delay="true")
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+_handler = logging.handlers.RotatingFileHandler(os.path.join(os.path.dirname(__file__), "debug.log"),"w", maxBytes=1024*1024, backupCount=1, delay="true")
+_handler.setLevel(logging.DEBUG)
+_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+_handler.setFormatter(_formatter)
+logger.addHandler(_handler)
 
 def _pickle_method(method):
       func_name = method.im_func.__name__
@@ -95,9 +68,9 @@ def _unpickle_method(func_name, obj, cls):
 copy_reg.pickle(MethodType,_pickle_method, _unpickle_method)
 
 #zernike coefficients correlation mask
-maskfile = os.path.join(os.path.dirname(__file__), r'masknn.fits')
-z_handle = pyfits.open(maskfile)
-zcoef_mask = z_handle[0].data
+_maskfile = os.path.join(os.path.dirname(__file__), r'masknn.fits')
+_z_handle = pyfits.open(_maskfile)
+_zcoef_mask = _z_handle[0].data
 
 def _compmask(nz1, nz2):
     """Compute Zernike mask."""
@@ -160,16 +133,16 @@ def _kvalues(n1=None, n2=None, m1=None, m2=None, z1=None, z2=None):
     return K1, K2
 
 def _chassat_integral(x, zeta=None, Lam=None, w=None, K1=None, K2=None, n1=None, n2=None, m1=None, m2=None):
-    """Inner integral to compute the correlations (cf. Chassat)"""
+    """Inner integral to compute the correlations (cf. Chassat, 1992)"""
     #compute bessel functions
-    j1 = jv(n1+1,x)
-    j2 = jv(n2+1,w*x)
-    j3 = jv(m1+m2,zeta*x)
-    j4 = jv(np.abs(m1-m2),zeta*x)
+    j1 = scipy.special.jv(n1+1,x)
+    j2 = scipy.special.jv(n2+1,w*x)
+    j3 = scipy.special.jv(m1+m2,zeta*x)
+    j4 = scipy.special.jv(np.abs(m1-m2),zeta*x)
     return x**(-14./3.) * j1 * j2 * (1. + (Lam / x)**2.)**(-11./6.) * (K1/w * j3 + K2/w * j4)
 
 def _modified_chassat(t, zeta=None, Lam=None, w=None, K1=None, K2=None, n1=None, n2=None, m1=None, m2=None):
-    """Chane of variables to deal with improper integral."""
+    """Change of variables to deal with improper integral."""
     return _chassat_integral(np.tan(t), zeta, Lam, w, K1, K2, n1, n2, m1, m2) / np.cos(t)**2.
 
 def fftcorr(X,Y,s=None):
@@ -178,6 +151,7 @@ def fftcorr(X,Y,s=None):
     Parameters
     ----------
     X: numpy array
+    
     Y: numpy array
 
     s: sequence of ints, optional
@@ -209,33 +183,33 @@ def polar2(radius, oc=0., fourpixels=True, leq=False, length=None, center=None):
 
     Parameters
     ----------
-    radius: int or float
-            radius of pupil in pixels
-    oc: float, optional
-        size of central occultation for pupil mask (default=0.)
-    fourpixels: bool
+    radius: int or float  
+        radius of pupil in pixels  
+    oc: float, optional  
+        size of central occultation for pupil mask (default=0.)  
+    fourpixels: bool  
         if True and length is < 0 or missing then the centre of the pupil is
         in the intersection of the four central pixels and the length set to
         an even number, if False the centre is in central pixel and length set to
-        an odd number (of pixels)
-    leq: bool
+        an odd number (of pixels)  
+    leq: bool  
         if True the border of mask is included (points <= radius), if False it
-        is not (points < radius)
-    length: float, optional
+        is not (points < radius)  
+    length: float, optional  
         length of pupil in physical units, computed according to fourpixels argument
-        if not given
-    center: array_like, optional
-        coordinates of pupil center, set to half of length if not given
+        if not given  
+    center: array_like, optional  
+        coordinates of pupil center, set to half of length if not given  
 
     Returns
     -------
 
-    rho: ndarray
-        Array of rho coordinates
-    phi: ndarray
-        Array of phi coordinates
-    mask: ndarray
-        Array of pupil's mask (i.e. 1 inside the pupil and 0 outside)
+    rho: ndarray  
+        Array of rho coordinates  
+    phi: ndarray  
+        Array of phi coordinates  
+    mask: ndarray  
+        Array of pupil's mask (i.e. 1 inside the pupil and 0 outside)  
 
     """
     if length <= 0. or length is None:
@@ -287,25 +261,64 @@ def _angletiti(x, y):
 class Structure(object):
     """
     Muse GLAO structure functions
-    Anisoplanetism and fitting errors only
+    Includes the effects of anisoplanetism and fitting errors only
     """
     def __init__(self, aoname, atmosphere, pixdiam, integrator, debug):
+        """
+        Structure function
+
+        Parameters
+        ----------
+
+        aoname: string  
+            name of the AO correction system  
+        atmosphere: object  
+            Instance of `rpsfpy.rpsf.Atmosphere` class. Contains variables related to the atmosphere.  
+        pixdiam: int  
+            Diameter of the telescope pupil in pixels.  
+        integrator: 'accurate' or 'quick'  
+            integrator used to conpute correlations between Zernike coefficients. Default is 'accurate'  
+        debug: bool  
+            If true the matrices of correlations between Zernike coefficients will be aved in ASCII files. Default is False  
+        """
         self.aoname = aoname
-        self.lgspos, self.hlgs, self.n_zernike, self.pupil_diameter = ao_systems.get(self.aoname)
+        """String with the name of the AO correction system: must be a key of the `rpsfpy.rpsf.AOsystem.systems` dictionary."""
+        _lgspos, _hlgs, _n_zernike, _pupil_diameter = ao_systems.get(self.aoname)
+        self.lgspos = _lgspos
+        """List of coordinates (XY) of the LGSs in the FoV (in arcsec). Read from `rpsfpy.rpsf.AOsystem.systems` dictionary."""
+        self.hlgs = _hlgs
+        """Height of the LGSs (in m). Read from `rpsfpy.rpsf.AOsystem.systems` dictionary."""
+        self.n_zernike = _n_zernike
+        """Number of Zernike modes corrected by the AO system. Read from `rpsfpy.rpsf.AOsystem.systems` dictionary."""
+        self.pupil_diameter = _pupil_diameter
+        """Diameter of the telescope mirror (in m). Read from `rpsfpy.rpsf.AOsystem.systems` dictionary."""
         self.cn2 = np.array(atmosphere.cn2_profile)
+        """Normalized Cn2 profile (list). Read from  an `rpsfpy.rpsf.Atmosphere` instance."""
         self.h_profile = np.array(atmosphere.h_profile)
+        """Height of atmospheric layers corresponding to the Cn2 profile (list). Read from  an `rpsfpy.rpsf.Atmosphere` instance."""
         self.n_layers = len(self.cn2)
+        """Number of atmospheric layers"""
         self.outer_scale = atmosphere.outer_scale
+        """Value of the outer scale (in m). Read from  an `rpsfpy.rpsf.Atmosphere` instance."""
         self.Zernike = zernike.Zernike()
+        """Zernike polynomial instance"""
         self.pixdiam = int(pixdiam)  #must be integer
+        """Diameter of the pupil in pixels. Note that the sampling is always done at the Nyquist rate."""
         self.integrator = integrator
-        self.rho, self.phi, self.mask = polar2(self.pixdiam/2., fourpixels=True, length=self.pixdiam)
+        """Integrator used to conpute correlations between Zernike coefficients."""
+        _rho, _phi, _mask = polar2(self.pixdiam/2., fourpixels=True, length=self.pixdiam)
+        self.rho = _rho
+        """Grid of rho polar coordinates in the pupil plane."""
+        self.phi = _phi
+        """Grid of phi polar coordinates in the pupil plane."""
+        self.mask = _mask
+        """Pupil function. Value is one inside the pupil and zero outside."""
         self._debug = debug
 
         if self.n_zernike > 980:
-            self.zcoef_mask = _compmask(self.n_zernike, self.n_zernike).T
+            self._zcoef_mask = _compmask(self.n_zernike, self.n_zernike).T
         else:
-            self.zcoef_mask = zcoef_mask
+            self._zcoef_mask = _zcoef_mask
 
     def cart2polar(self, objpos, gspos):
         """
@@ -335,7 +348,7 @@ class Structure(object):
         return alphags, gammags, betags
 
     def correl_swsw(self, angle, nz1, nz2, h1, h2, method='quad'):
-        """Correlation coeficients between two spherical waves."""
+        """Correlation coeficients between two spherical waves. This is the 'quick' integrator."""
         alpha = angle * 4.85*1.e-6
         R = self.pupil_diameter / 2.
         R1 = (h1-self.h_profile) / h1 * R
@@ -349,15 +362,15 @@ class Structure(object):
         results = np.zeros(len(self.h_profile))
         for idx in np.arange(len(self.h_profile)):
             if method == 'quad':
-                result_quad = quad(_chassat_integral, 0, np.inf, args=(zeta[idx], Lam[idx], w[idx],  k1, k2, n1, n2, m1, m2))
+                result_quad = scipy.integrate.quad(_chassat_integral, 0, np.inf, args=(zeta[idx], Lam[idx], w[idx],  k1, k2, n1, n2, m1, m2))
                 results[idx] = result_quad[0] * self.cn2[idx] * R1[idx]**(5./3.)
             elif method == 'romberg':
-                result_quad = romberg(_modified_chassat, 1.e-26,np.pi/2., args=(zeta[idx], Lam[idx], w[idx], k1, k2, n1, n2, m1, m2), vec_func = False)
+                result_quad = scipy.integrate.romberg(_modified_chassat, 1.e-26,np.pi/2., args=(zeta[idx], Lam[idx], w[idx], k1, k2, n1, n2, m1, m2), vec_func = False)
                 results[idx] = result_quad * self.cn2[idx] * R1[idx]**(5./3.)
         if len(results) < 2:
             final_integral = results / (self.cn2 * R1**(5./3.))
         else:
-            final_integral = trapz(results, x=self.h_profile) / trapz(self.cn2 * R1**(5./3.), x=self.h_profile)
+            final_integral = scipy.integrate.trapz(results, x=self.h_profile) / scipy.integrate.trapz(self.cn2 * R1**(5./3.), x=self.h_profile)
         final_integral = 3.895 * (-1.)**((n1+n2-m1-m2)/2.) * np.sqrt((n1+1.)*(n2+1.)) * final_integral
         return final_integral
 
@@ -394,15 +407,23 @@ class StructureLGS(Structure):
     def __init__(self, aoname, atmosphere, pixdiam, integrator, parallel='auto', hngs=10.e20, debug=False):
         super(StructureLGS, self).__init__(aoname, atmosphere, pixdiam, integrator, debug)
         self.nlgs = len(self.lgspos)
+        """Number of LGSs."""
         self.hngs = hngs
+        """Height of natural stars (NGS and science objects). Default value is 10.e20."""
         self.sigmaslgs = np.ones(self.nlgs) / self.nlgs
+        """Relative weight of each LGS. By default all have the same weight."""
         self.combilgs = np.fromiter(itertools.combinations(np.arange(self.nlgs), 2), np.dtype(('i, i')))
+        """Permutations of LGSs indices (e.g. for 4 LGSs: [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])."""
         self.ncombilgs = len(self.combilgs)
+        """Number of LGSs indices permutations."""
         self.dphilgs = None
+        """LGS anisoplanatism structure function"""
         self.zernikes = np.zeros((self.n_zernike-4, self.pixdiam, self.pixdiam))
+        """Array of Zernike polinomyals. Up to the specified numberof corrected modes, except the piston, tip and tilt."""
         self.parallel = parallel
+        """Number of cores available for the computation of the structure function. Defaults to 'auto': use all available cores."""
         if self.parallel == 'auto':
-            self.cpus = cpu_count()
+            self.cpus = multiprocessing.cpu_count()
         else:
             self.cpus = int(parallel)
             if self.cpus < 1:
@@ -424,6 +445,7 @@ class StructureLGS(Structure):
             raise RuntimeError('LGS structure function not available')
 
     def readfromfile(self, filename):
+        """Read structure function from ASCII file"""
         self.dphilgs = np.loadtxt(filename)
 
     def _compute_lgscoef(self, modes, h1, h2, alpha):
@@ -432,12 +454,12 @@ class StructureLGS(Structure):
         for idx in xrange(n_modes):
             i = modes[idx][0]
             j = modes[idx][1]
-            if self.integrator == "python":
+            if self.integrator == "quick":
                 coefmatrix[idx] = self.correl_swsw(alpha, i, j, h1, h2)
-            elif self.integrator == "idl":
+            elif self.integrator == "accurate":
                 coefmatrix[idx] = chassat.correl_osos_general([alpha], self.pupil_diameter, h1, h2, self.cn2, self.h_profile, dr0 =1., num_zern1 = i, num_zern2 = j, gd_echelle = 25., borne_min = 7.e-3,npas = 100)
             else:
-                raise ValueError("Integrator must be a choice of 'idl' or 'python' ")
+                raise ValueError("Integrator must be a choice of 'accurate' or 'quick' ")
         return coefmatrix, modes
 
     def cov_zernike(self, alpha, h1, h2):
@@ -446,10 +468,26 @@ class StructureLGS(Structure):
 
         The Zernike coefficients are from the expansions in Zernike basis of 
         two sources sepparated by alpha at heights h1 and h2
+
+        Parameters
+        ----------
+
+        alpha: float  
+            distance between the two sources in arcsec  
+        h1: float  
+            height of the first source in m  
+        h2: float  
+            height of the first source in m  
+
+        Returns
+        -------
+
+        lgscoefmatrix: numpy array  
+            matrix of correlations between Zernike coefficients i and j  
         """
         lgscoefmatrix = np.zeros((self.n_zernike-4, self.n_zernike-4))
         lgsnewzernikes = np.zeros((self.n_zernike-4, self.pixdiam, self.pixdiam))
-        modes = [(i, j) for i in xrange(4, self.n_zernike) for j in xrange(4, self.n_zernike) if self.zcoef_mask[j-2, i-2]]
+        modes = [(i, j) for i in xrange(4, self.n_zernike) for j in xrange(4, self.n_zernike) if self._zcoef_mask[j-2, i-2]]
         #modes = []
         #for i in np.arange(4,self.n_zernike):
         #    for j in np.arange(i,self.n_zernike):
@@ -457,7 +495,7 @@ class StructureLGS(Structure):
         #            modes.append((i,j))
         modes = np.array(modes)
         if self.cpus >= 1:
-            pool = Pool(processes=self.cpus)
+            pool = multiprocessing.Pool(processes=self.cpus)
             start = 0
             end = len(modes)
             step = (end-start)/self.cpus + 1
@@ -485,6 +523,23 @@ class StructureLGS(Structure):
         """
         Compute a term of the LGS structure function corresponding to the
         correlation between two sources.
+
+        Parameters
+        ----------
+
+        alpha: float  
+            distance between the two sources in arcsec  
+        gamma: float  
+            angle between the vectors defined b the two sources  
+        h1: float  
+            height of the first source in m  
+        h2: float  
+            height of the first source in m  
+
+        Returns
+        -------
+
+        structure function term
         """
         lgscoefmatrix = self.cov_zernike(alpha, h1, h2)
         if self._debug:
@@ -498,13 +553,13 @@ class StructureLGS(Structure):
         lgsvmatrices = self.compvii(lgsnewzernikes, self.mask)
         return np.tensordot(propervalues, lgsvmatrices, axes=1)
 
-    def lgs_term1(self):
+    def _lgs_term1(self):
         """Compute first term of LGS structure function"""
         logger.debug("Computing first term of LGS structure function.")
         term1 = self.compute_term(0., 0., self.hngs, self.hngs)
         return term1
 
-    def lgs_term2(self):
+    def _lgs_term2(self):
         """Compute Second term of LGS structure function"""
         logger.debug("Computing second term of LGS structure function.")
         term2 = np.zeros((2*self.pixdiam, 2*self.pixdiam))
@@ -512,13 +567,13 @@ class StructureLGS(Structure):
             term2 = term2 + self.sigmaslgs[i_lgs] * self.compute_term(self.alphalgs[i_lgs,i_lgs],-self.gammalgs[i_lgs], self.hngs, self.hlgs)
         return -2. * term2
 
-    def lgs_term3(self):
+    def _lgs_term3(self):
         """Compute Third term of LGS structure function"""
         logger.debug("Computing third term of LGS structure function.")
         term3 = self.compute_term(0., 0., self.hlgs, self.hlgs)
         return term3 * np.sum(self.sigmaslgs**2.)
 
-    def lgs_term4(self):
+    def _lgs_term4(self):
         """Compute Fourth term of LGS structure function"""
         logger.debug("Computing fourth term of LGS structure function.")
         term4 = np.zeros((2*self.pixdiam, 2*self.pixdiam))
@@ -529,7 +584,21 @@ class StructureLGS(Structure):
         return term4
 
     def compute(self, objpos):
-        """Compute LGS structure function"""
+        """
+        Compute LGS anisoplanatism structure function
+        
+        Parameters
+        ----------
+
+        objpos: list of lists  
+             coordinates of the science obect (posiiton where to compute the PSF) (in arcsec)  
+
+        Returns
+        -------
+
+        dphilgs: numpy array  
+            LGS anisoplanatism structure function
+        """
         logger.info("Computing LGS structure function using %s CPUs.", str(self.cpus))
         self.objectpos = objpos
         self.alphalgs, self.gammalgs, self.betalgs = self.cart2polar(self.objectpos, self.lgspos)
@@ -538,28 +607,28 @@ class StructureLGS(Structure):
         data1.append(self.outer_scale)
         term1 = pclib.getfunction(id_key=key1, data_values=data1)
         if term1 is None:
-            term1 = self.lgs_term1()
+            term1 = self._lgs_term1()
             pclib.add(id_key=key1, data_values=data1, structure_function=term1)
         key2 = ("lgs2", self.aoname, self.n_layers, self.n_zernike, self.pixdiam, self.integrator)
         data2 = self.cn2.tolist() + self.h_profile.tolist() + np.diagonal(self.alphalgs).tolist() + self.gammalgs.tolist()
         data2.append(self.outer_scale)
         term2 = pclib.getfunction(id_key=key2, data_values=data2)
         if term2 is None:
-            term2 = self.lgs_term2()
+            term2 = self._lgs_term2()
             pclib.add(id_key=key2, data_values=data2, structure_function=term2)
         key3 = ("lgs3", self.aoname, self.n_layers, self.n_zernike, self.pixdiam, self.integrator)
         data3 = self.cn2.tolist() + self.h_profile.tolist() + [0., 0.] 
         data3.append(self.outer_scale)
         term3 = pclib.getfunction(id_key=key3, data_values=data3)
         if term3 is None:
-            term3 = self.lgs_term3()
+            term3 = self._lgs_term3()
             pclib.add(id_key=key3, data_values=data3, structure_function=term3)
         key4 = ("lgs4", self.aoname, self.n_layers, self.n_zernike, self.pixdiam, self.integrator)
         data4 = self.cn2.tolist() + self.h_profile.tolist() + [self.alphalgs[i,j] for (i,j) in self.combilgs] + self.betalgs.tolist()
         data4.append(self.outer_scale)
         term4 = pclib.getfunction(id_key=key4, data_values=data4)
         if term4 is None:
-            term4 = self.lgs_term4()
+            term4 = self._lgs_term4()
             pclib.add(id_key=key4, data_values=data4, structure_function=term4)
         self.dphilgs = term1 + term2 + term3 + term4
         if self._debug:
@@ -573,8 +642,11 @@ class StructureNGS(Structure):
     def __init__(self, aoname, atmosphere, pixdiam, integrator, hngs=10.e20, debug=False):
         super(StructureNGS, self).__init__(aoname, atmosphere, pixdiam, integrator, debug)
         self.hngs = hngs
+        """Height of the NGS in m. Deafult is 10.e20."""
         self.dphings = None
+        """LGS anisoplanatism structure function"""
         self.zernikes = np.zeros((2, self.pixdiam, self.pixdiam))
+        """Array of Zernike polinomyals. Tip and tilt only."""
 
     def setngspos(self, ngspos):
         """Set NGS coordinates"""
@@ -600,12 +672,12 @@ class StructureNGS(Structure):
         for idx in xrange(n_modes):
             i = modes[idx][0]
             j = modes[idx][1]
-            if self.integrator == "python":
+            if self.integrator == "quick":
                 coefmatrix[idx] = self.correl_swsw(alpha, i, j, self.hngs, self.hngs)
-            elif self.integrator == "idl":
+            elif self.integrator == "accurate":
                 coefmatrix[idx] = chassat.correl_osos_general([alpha], self.pupil_diameter, self.hngs, self.hngs, self.cn2, self.h_profile, dr0 =1., num_zern1 = i, num_zern2 = j, gd_echelle = 25., borne_min = 7.e-3,npas = 100)
             else:
-                raise ValueError("Integrator must be a choice of 'idl' or 'python' ")
+                raise ValueError("Integrator must be a choice of 'accurate' or 'quick' ")
             #coefmatrix[idx] = self.correl_swsw(alpha, i, j, self.hngs, self.hngs)
             #coefmatrix[idx] = chassat.correl_osos_general([alpha], self.pupil_diameter, self.hngs, self.hngs, self.cn2, self.h_profile, dr0 =1., num_zern1 = i, num_zern2 = j, gd_echelle = 25., borne_min = 7.e-3,npas = 100)
         return coefmatrix, modes
@@ -615,7 +687,19 @@ class StructureNGS(Structure):
         Compute covariance matrix of Zernike coefficients
 
         The Zernike coefficients are from the expansions in Zernike basis of 
-        two sources sepparated by alpha at heights h1 and h2
+        two sources sepparated by alpha at NGS height
+
+        Parameters
+        ----------
+
+        alpha: float  
+            distance between the two sources in arcsec  
+
+        Returns
+        -------
+
+        ngscoefmatrix: numpy array  
+            matrix of correlations between Zernike coefficients i and j  
         """
         modes = [(i, j) for i in xrange(2, 4) for j in xrange(2, 4)]
         modes = np.array(modes)
@@ -634,6 +718,19 @@ class StructureNGS(Structure):
         """
         Compute a term of the NGS structure function corresponding to the
         correlation between two sources.
+
+        Parameters
+        ----------
+
+        alpha: float  
+            distance between the two sources in arcsec  
+        gamma: float  
+            angle between the vectors defined b the two sources  
+
+        Returns
+        -------
+
+        structure function term
         """
         ngscoefmatrix = self.cov_zernike(alpha)
         if self._debug:
@@ -647,13 +744,13 @@ class StructureNGS(Structure):
         ngsvmatrices = self.compvii(ngsnewzernikes, self.mask)
         return np.tensordot(propervalues, ngsvmatrices, axes=1)
 
-    def ngs_term1(self):
+    def _ngs_term1(self):
         """Compute first term of NGS structure function"""
         logger.debug("Computing first term of NGS structure function.")
         term1 = self.compute_term(0., 0.)
         return term1
 
-    def ngs_term2(self):
+    def _ngs_term2(self):
         """Compute Second term of NGS structure function"""
         logger.debug("Computing second term of NGS structure function.")
         term2 = np.zeros((2*self.pixdiam, 2*self.pixdiam))
@@ -661,13 +758,13 @@ class StructureNGS(Structure):
             term2 = term2 + self.sigmasngs[i_ngs] * self.compute_term(self.alphangs[i_ngs,i_ngs], -self.gammangs[i_ngs])
         return -2. * term2
 
-    def ngs_term3(self):
+    def _ngs_term3(self):
         """Compute Third term of NGS structure function"""
         logger.debug("Computing third term of NGS structure function.")
         term3 = self.compute_term(0., 0.)
         return term3 * np.sum(self.sigmasngs**2.)
 
-    def ngs_term4(self):
+    def _ngs_term4(self):
         """Compute Fourth term of NGS structure function"""
         logger.debug("Computing fourth term of NGS structure function.")
         term4 = np.zeros((2*self.pixdiam, 2*self.pixdiam))
@@ -678,7 +775,23 @@ class StructureNGS(Structure):
         return term4
 
     def compute(self, objpos, ngspos):
-        """Natural guide star anisoplanatism structure function"""
+        """
+        Compute NGS anisoplanatism structure function
+        
+        Parameters
+        ----------
+
+        objpos: list of lists  
+             coordinates of the science obect (posiiton where to compute the PSF)  
+        ngspos: list of lists  
+            coordinates of the NGS(s) (in arcsec)  
+
+        Returns
+        -------
+
+        dphings: numpy array  
+            NGS anisoplanatism structure function  
+        """
 #        hngs = 10.e20 #try later with infinite
         logger.info("Computing NGS structure function.")
         self.objectpos = objpos
@@ -689,10 +802,10 @@ class StructureNGS(Structure):
         self.combings = np.fromiter(itertools.combinations(np.arange(self.nngs), 2), np.dtype(('i, i')))
         self.ncombings = len(self.combings)
         self.alphangs, self.gammangs, self.betangs = self.cart2polar(self.objectpos, self.ngspos)
-        term1 = self.ngs_term1()
-        term2 = self.ngs_term2()
-        term3 = self.ngs_term3()
-        term4 = self.ngs_term4()
+        term1 = self._ngs_term1()
+        term2 = self._ngs_term2()
+        term3 = self._ngs_term3()
+        term4 = self._ngs_term4()
         self.dphings = term1 + term2 + term3 + term4
         if self._debug:
             fname = "struct" + "_NGS_" + "object_" + str(self.objectpos) + "_ngs_" + str(self.ngspos) + ".txt"
@@ -713,22 +826,24 @@ class Atmosphere(object):
         
         Parameters
         ----------
-        rzero:
-            turbulence coherence length.
-        cn2_profile:
-            Cn2 profile of turbulence.
-        h_profile:
-            height of atmospheric layers of Cn2 profile.
-        outer_scale:
-            turbulence outer scale.
+        rzero: float  
+            turbulence coherence length (in m).  
+        cn2_profile: list of floats  
+            Cn2 profile of turbulence (normalized to one).  
+        h_profile: list of floats  
+            height of atmospheric layers of Cn2 profile (in m).  
+        outer_scale: float  
+            turbulence outer scale (in m).  
         """
         self.rzero = rzero
+        """turbulence coherence length (in m)"""
         if len(cn2_profile) == len(h_profile):
             self.cn2_profile = cn2_profile
             self.h_profile = h_profile
         else:
             raise ValueError("Cn2 profile and height profile must be of same size")
         self.outer_scale = outer_scale
+        """turbulence outer scale (in m)"""
 
     def readfromfile(self, infile=None):
         """Not implemented"""
@@ -743,7 +858,9 @@ class AOsystem(object):
     """
     def __init__(self, aofile="aofile.json"):
         self.aofile = os.path.join(os.path.dirname(__file__), aofile)
+        """Name of file containing the `rpsfpy.rpsf.AOsystem.systems` dictionary (**aofile.json** by default)"""
         self.systems = {}
+        """Dictionary containing specifications of AO systems."""
         try:
             with open(self.aofile, "r") as f:
                 self.systems.update(json.load(f))
@@ -772,16 +889,16 @@ class AOsystem(object):
         
         Parameters
         ----------
-        name:
-            string indicating name of AO system.
-        lgspos:
-            positions on the LGSs in arcsec.
-        lgsheight:
-            height of LGSs in m.
-        zmodes:
-            number of Zernike modes corrected by AO system.
-        diameter:
-            diameter of pupil in m.
+        name, string:string  
+            name of AO system:key to `rpsfpy.rpsf.AOsystem.systems` dictionary.  
+        lgspos: list of lists  
+            positions on the LGSs in arcsec.  
+        lgsheight: float  
+            height of LGSs in m.  
+        zmodes: int  
+            number of Zernike modes corrected by AO system.  
+        diameter: float  
+            diameter of pupil in m.  
         """
         if type(name) == str:
             self.systems[name] = lgspos, lgsheight, zmodes, diameter
@@ -925,6 +1042,7 @@ class StructureFit(Structure):
     def __init__(self, aoname, atmosphere, pixdiam, debug=False):
         super(StructureFit, self).__init__(aoname, atmosphere, pixdiam, "standard", debug)
         self.dphifit = None
+        """Fitting error structure function"""
 
     def save2file(self, filename="dphifit.dat"):
         """Save Structure function in ASCII file"""
@@ -945,12 +1063,26 @@ class StructureFit(Structure):
         for i in range(2*self.pixdiam):
             for j in range(2*self.pixdiam):
                 lower_bound = 2. * np.pi * Fc * rho[i,j]
-                result_quad = quad(lambda x: x**(-8./3.)*(1.-jv(0,x)), lower_bound, 150.)
+                result_quad = scipy.integrate.quad(lambda x: x**(-8./3.)*(1.-scipy.special.jv(0,x)), lower_bound, 150.)
                 tot_correletion_aiaj[i,j] = result_quad[0] * rho[i,j]**(5./3.)
         return 0.023 * 2.**(11./3.) * np.pi**(8./3.) * tot_correletion_aiaj
 
     def compute(self, fc_constant=0.37):
-        """Fitting error structure function."""
+        """
+        Compute fitting error structure function.
+
+        Parameters
+        ----------
+
+        fc_constant: float  
+             constant used in the approximation to the structure function  
+
+        Returns
+        -------
+
+        dphifit: numpy array  
+            fitting error structure function
+        """
         logger.info("Computing Fitting error structure function.")
         key = ("fit", self.aoname, self.n_layers, self.n_zernike, self.pixdiam, "standard")
         data = self.cn2.tolist() + self.h_profile.tolist() + [0., 0]
@@ -968,18 +1100,53 @@ class StructureFit(Structure):
 
 
 class Reconstruct(object):
+    """
+    PSF estimation
+    """
 
-    def __init__(self, pixdiam, ao_system, ngspos, atmosphere, parallel='auto', integrator='idl', debug=False):
-        self.ao_system = ao_system
+    def __init__(self, pixdiam, aoname, ngspos, atmosphere, parallel='auto', integrator='accurate', debug=False):
+        """
+        PSF estimation
+
+        Parameters
+        ----------
+        pixdiam: int  
+            Diameter of the pupil in pixels. The total size of the final image will be twice this value  
+        aoname: string  
+            name of the AO correction system: must be a key of the `rpsfpy.rpsf.AOsystem.systems` dictionary.  
+        ngspos: list of lists  
+            coordinates of the NGS(s) (in arcsec)  
+        atmosphere: object  
+            Instance of `rpsfpy.rpsf.Atmosphere` class. Contains variables related to the atmosphere.  
+        integrator: 'accurate' or 'quick'  
+            integrator used to conpute correlations between Zernike coefficients. Default is 'accurate'  
+        parallel: int or 'auto', optional  
+            number of cores available for the computation of the structure function. Defaults to 'auto': use all available cores  
+        integrator: 'accurate' or 'quick'  
+            integrator used to conpute correlations between Zernike coefficients. Default is 'accurate'  
+        debug: bool  
+            If true the matrices of correlations between Zernike coefficients will be aved in ASCII files. Default is False  
+        """
+        self.ao_system = aoname
+        """String with the name of the AO correction system: must be a key of the `rpsfpy.rpsf.AOsystem.systems` dictionary."""               
         self.ngspos = ngspos
+        """coordinates of the NGS(s) (in arcsec)"""
         self.pixdiam = int(pixdiam)
+        """Diameter of the pupil in pixels. Note that the sampling is always done at the Nyquist rate."""
         self.parallel = parallel
+        """Number of cores available for the computation of the structure function. Defaults to 'auto': use all available cores."""
         self.integrator = integrator
+        """Integrator used to conpute correlations between Zernike coefficients."""
         self.atmosphere = atmosphere
+        """Instance of `rpsfpy.rpsf.Atmosphere` class."""
         self.Dngs = StructureNGS(self.ao_system, self.atmosphere, self.pixdiam, self.integrator, debug=debug)
+        """Instance of `rpsfpy.rpsf.StructureNGS` class."""
         self.Dlgs = StructureLGS(self.ao_system, self.atmosphere, self.pixdiam, self.integrator, parallel=self.parallel, debug=debug)
+        """Instance of `rpsfpy.rpsf.StructureLGS` class."""
         self.Dfit = StructureFit(self.ao_system, self.atmosphere, self.pixdiam, debug=debug)
+        """Instance of `rpsfpy.rpsf.StructureFit` class."""
         self.diameter = self.Dlgs.pupil_diameter
+        """Telescope pupil diameter (in m)."""
         logger.debug("Computing Structure functions with lgs positions: %s", str(self.Dlgs.lgspos))
         logger.debug("Computing Structure functions with lgs height: %s", str(self.Dlgs.hlgs))
         logger.debug("Computing Structure functions with Zernike modes: %s", str(self.Dlgs.n_zernike))
@@ -1015,20 +1182,20 @@ class Reconstruct(object):
 
         Parameters
         ----------
-        objectlist: list of lists, tuples or arrays (2 elements)
-                positions in the FoV (in arcsec) in which to estimate the OTF.
-        wavelength: float
-                wavelength of in nm
-        out: string, optional
+        objectlist: list of lists, tuples or arrays (2 elements)  
+                positions in the FoV (in arcsec) in which to estimate the OTF.  
+        wavelength: float  
+                wavelength of in nm  
+        out: string, optional  
                 Name of output file. If set, the output OTFs will be written to 
                 a FITS file as a "data cube", i.e. the OTFs will be stacked in an
-                3D array.
+                3D array.  
     
         Returns
         -------
 
-        otf_array: ndarray
-                OTFs stacked in a 3D Numpy array.
+        otf_array: ndarray  
+                OTFs stacked in a 3D Numpy array.  
         """
         r0_500 = self.atmosphere.rzero
         r0_wv = r0_500 * (wavelength / 500.)**(6./5.)
@@ -1072,23 +1239,23 @@ class Reconstruct(object):
 
         Parameters
         ----------
-        objectlist: list of lists, tuples or arrays (2 elements)
-                positions in the FoV (in arcsec) in which to estimate the PSF.
-        wavelength: float
-                wavelength of the PSF in nm
-        scale: float, optional
+        objectlist: list of lists, tuples or arrays (2 elements)  
+                positions in the FoV (in arcsec) in which to estimate the PSF.  
+        wavelength: float  
+                wavelength of the PSF in nm  
+        scale: float, optional  
                 factor of increase in the PSF sampling rate relative to the Nyquist
-                limit. default is 1 (Nyquist rate).
+                limit. default is 1 (Nyquist rate).  
         out: string, optional
                 Name of output file. If set, the output PSFs will be written to 
                 a FITS file as a "data cube", i.e. the PSFs will be stacked in an
-                3D array.
+                3D array.  
     
         Returns
         -------
 
-        psf_array: ndarray
-                PSFs stacked in a 3D Numpy array.
+        psf_array: ndarray  
+                PSFs stacked in a 3D Numpy array.  
         """
         logger.info("Computing PSFs for wavelength = %s nm", str(wavelength))
         if scale < 1: raise ValueError("scale must be >= 1")
@@ -1136,6 +1303,8 @@ class Reconstruct(object):
 
 #Load library of pre-computed structure functions
 pclib = Pclib()
+"""Instance of  `rpsfpy.rpsf.Pclib`: load pre-computed structure function terms"""
 
 #Load library of AO systems
 ao_systems = AOsystem()
+"""Instance of  `rpsfpy.rpsf.AOsystem`: load known AO systems"""

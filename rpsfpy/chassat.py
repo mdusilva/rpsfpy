@@ -1,3 +1,7 @@
+"""
+Functions to compute covariance between the Zernike coefficients of two spherical waves (cf. Chassat 1992)
+"""
+
 import numpy as np
 from scipy.special import jv
 from scipy.integrate import trapz, quad, romberg, IntegrationWarning
@@ -216,7 +220,7 @@ def _kvalues(n1=None, n2=None, m1=None, m2=None, z1=None, z2=None):
     return K1, K2
 
 def _chassat_integral(x, zeta=None, Lam=None, w=None, K1=None, K2=None, n1=None, n2=None, m1=None, m2=None):
-    """Inner integral to compute the correlations (Chassat)"""
+    """Inner integral to compute the correlations (Chassat, 1992)"""
     #compute bessel functions
     j1 = jv(n1+1,x)
     j2 = jv(n2+1,w*x)

@@ -29,7 +29,7 @@ setup(
       ],
       install_requires = ["numpy", "scipy", "pyfits>=3.1"],
       package_data = {
-          '' : ['masknn.fits','aofile.json', 'pcdata/pclib.json']
+          '' : ['masknn.fits','aofile.json', 'pcdata/pclib.json', 'docs/rpsf.m.html', 'docs/zernike.m.html', 'docs/chassat.m.html', 'docs/index.html']
       },
       zip_safe=False
 )
