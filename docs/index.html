@@ -1,0 +1,1509 @@
+<!doctype html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+
+    <title>rpsfpy API documentation</title>
+    <meta name="description" content="RPSFpy - PSF reconstruction for GLAO
+
+This is a set of tools to reconstruct PSFs of GLAO systems, ta..." />
+
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
+  
+  <style type="text/css">
+  
+* {
+  box-sizing: border-box;
+}
+/*! normalize.css v1.1.1 | MIT License | git.io/normalize */
+
+/* ==========================================================================
+   HTML5 display definitions
+   ========================================================================== */
+
+/**
+ * Correct `block` display not defined in IE 6/7/8/9 and Firefox 3.
+ */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section,
+summary {
+    display: block;
+}
+
+/**
+ * Correct `inline-block` display not defined in IE 6/7/8/9 and Firefox 3.
+ */
+
+audio,
+canvas,
+video {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+}
+
+/**
+ * Prevent modern browsers from displaying `audio` without controls.
+ * Remove excess height in iOS 5 devices.
+ */
+
+audio:not([controls]) {
+    display: none;
+    height: 0;
+}
+
+/**
+ * Address styling not present in IE 7/8/9, Firefox 3, and Safari 4.
+ * Known issue: no IE 6 support.
+ */
+
+[hidden] {
+    display: none;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+/**
+ * 1. Prevent system color scheme's background color being used in Firefox, IE,
+ *    and Opera.
+ * 2. Prevent system color scheme's text color being used in Firefox, IE, and
+ *    Opera.
+ * 3. Correct text resizing oddly in IE 6/7 when body `font-size` is set using
+ *    `em` units.
+ * 4. Prevent iOS text size adjust after orientation change, without disabling
+ *    user zoom.
+ */
+
+html {
+    background: #fff; /* 1 */
+    color: #000; /* 2 */
+    font-size: 100%; /* 3 */
+    -webkit-text-size-adjust: 100%; /* 4 */
+    -ms-text-size-adjust: 100%; /* 4 */
+}
+
+/**
+ * Address `font-family` inconsistency between `textarea` and other form
+ * elements.
+ */
+
+html,
+button,
+input,
+select,
+textarea {
+    font-family: sans-serif;
+}
+
+/**
+ * Address margins handled incorrectly in IE 6/7.
+ */
+
+body {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+/**
+ * Address `outline` inconsistency between Chrome and other browsers.
+ */
+
+a:focus {
+    outline: thin dotted;
+}
+
+/**
+ * Improve readability when focused and also mouse hovered in all browsers.
+ */
+
+a:active,
+a:hover {
+    outline: 0;
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+/**
+ * Address font sizes and margins set differently in IE 6/7.
+ * Address font sizes within `section` and `article` in Firefox 4+, Safari 5,
+ * and Chrome.
+ */
+
+h1 {
+    font-size: 2em;
+    margin: 0.67em 0;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin: 0.83em 0;
+}
+
+h3 {
+    font-size: 1.17em;
+    margin: 1em 0;
+}
+
+h4 {
+    font-size: 1em;
+    margin: 1.33em 0;
+}
+
+h5 {
+    font-size: 0.83em;
+    margin: 1.67em 0;
+}
+
+h6 {
+    font-size: 0.67em;
+    margin: 2.33em 0;
+}
+
+/**
+ * Address styling not present in IE 7/8/9, Safari 5, and Chrome.
+ */
+
+abbr[title] {
+    border-bottom: 1px dotted;
+}
+
+/**
+ * Address style set to `bolder` in Firefox 3+, Safari 4/5, and Chrome.
+ */
+
+b,
+strong {
+    font-weight: bold;
+}
+
+blockquote {
+    margin: 1em 40px;
+}
+
+/**
+ * Address styling not present in Safari 5 and Chrome.
+ */
+
+dfn {
+    font-style: italic;
+}
+
+/**
+ * Address differences between Firefox and other browsers.
+ * Known issue: no IE 6/7 normalization.
+ */
+
+hr {
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    height: 0;
+}
+
+/**
+ * Address styling not present in IE 6/7/8/9.
+ */
+
+mark {
+    background: #ff0;
+    color: #000;
+}
+
+/**
+ * Address margins set differently in IE 6/7.
+ */
+
+p,
+pre {
+    margin: 1em 0;
+}
+
+/**
+ * Correct font family set oddly in IE 6, Safari 4/5, and Chrome.
+ */
+
+code,
+kbd,
+pre,
+samp {
+    font-family: monospace, serif;
+    _font-family: 'courier new', monospace;
+    font-size: 1em;
+}
+
+/**
+ * Improve readability of pre-formatted text in all browsers.
+ */
+
+pre {
+    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/**
+ * Address CSS quotes not supported in IE 6/7.
+ */
+
+q {
+    quotes: none;
+}
+
+/**
+ * Address `quotes` property not supported in Safari 4.
+ */
+
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+/**
+ * Address inconsistent and variable font size in all browsers.
+ */
+
+small {
+    font-size: 80%;
+}
+
+/**
+ * Prevent `sub` and `sup` affecting `line-height` in all browsers.
+ */
+
+sub,
+sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+sup {
+    top: -0.5em;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+/* ==========================================================================
+   Lists
+   ========================================================================== */
+
+/**
+ * Address margins set differently in IE 6/7.
+ */
+
+dl,
+menu,
+ol,
+ul {
+    margin: 1em 0;
+}
+
+dd {
+    margin: 0 0 0 40px;
+}
+
+/**
+ * Address paddings set differently in IE 6/7.
+ */
+
+menu,
+ol,
+ul {
+    padding: 0 0 0 40px;
+}
+
+/**
+ * Correct list images handled incorrectly in IE 7.
+ */
+
+nav ul,
+nav ol {
+    list-style: none;
+    list-style-image: none;
+}
+
+/* ==========================================================================
+   Embedded content
+   ========================================================================== */
+
+/**
+ * 1. Remove border when inside `a` element in IE 6/7/8/9 and Firefox 3.
+ * 2. Improve image quality when scaled in IE 7.
+ */
+
+img {
+    border: 0; /* 1 */
+    -ms-interpolation-mode: bicubic; /* 2 */
+}
+
+/**
+ * Correct overflow displayed oddly in IE 9.
+ */
+
+svg:not(:root) {
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Figures
+   ========================================================================== */
+
+/**
+ * Address margin not present in IE 6/7/8/9, Safari 5, and Opera 11.
+ */
+
+figure {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+/**
+ * Correct margin displayed oddly in IE 6/7.
+ */
+
+form {
+    margin: 0;
+}
+
+/**
+ * Define consistent border, margin, and padding.
+ */
+
+fieldset {
+    border: 1px solid #c0c0c0;
+    margin: 0 2px;
+    padding: 0.35em 0.625em 0.75em;
+}
+
+/**
+ * 1. Correct color not being inherited in IE 6/7/8/9.
+ * 2. Correct text not wrapping in Firefox 3.
+ * 3. Correct alignment displayed oddly in IE 6/7.
+ */
+
+legend {
+    border: 0; /* 1 */
+    padding: 0;
+    white-space: normal; /* 2 */
+    *margin-left: -7px; /* 3 */
+}
+
+/**
+ * 1. Correct font size not being inherited in all browsers.
+ * 2. Address margins set differently in IE 6/7, Firefox 3+, Safari 5,
+ *    and Chrome.
+ * 3. Improve appearance and consistency in all browsers.
+ */
+
+button,
+input,
+select,
+textarea {
+    font-size: 100%; /* 1 */
+    margin: 0; /* 2 */
+    vertical-align: baseline; /* 3 */
+    *vertical-align: middle; /* 3 */
+}
+
+/**
+ * Address Firefox 3+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
+ */
+
+button,
+input {
+    line-height: normal;
+}
+
+/**
+ * Address inconsistent `text-transform` inheritance for `button` and `select`.
+ * All other form control elements do not inherit `text-transform` values.
+ * Correct `button` style inheritance in Chrome, Safari 5+, and IE 6+.
+ * Correct `select` style inheritance in Firefox 4+ and Opera.
+ */
+
+button,
+select {
+    text-transform: none;
+}
+
+/**
+ * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
+ *    and `video` controls.
+ * 2. Correct inability to style clickable `input` types in iOS.
+ * 3. Improve usability and consistency of cursor style between image-type
+ *    `input` and others.
+ * 4. Remove inner spacing in IE 7 without affecting normal text inputs.
+ *    Known issue: inner spacing remains in IE 6.
+ */
+
+button,
+html input[type="button"], /* 1 */
+input[type="reset"],
+input[type="submit"] {
+    -webkit-appearance: button; /* 2 */
+    cursor: pointer; /* 3 */
+    *overflow: visible;  /* 4 */
+}
+
+/**
+ * Re-set default cursor for disabled elements.
+ */
+
+button[disabled],
+html input[disabled] {
+    cursor: default;
+}
+
+/**
+ * 1. Address box sizing set to content-box in IE 8/9.
+ * 2. Remove excess padding in IE 8/9.
+ * 3. Remove excess padding in IE 7.
+ *    Known issue: excess padding remains in IE 6.
+ */
+
+input[type="checkbox"],
+input[type="radio"] {
+    box-sizing: border-box; /* 1 */
+    padding: 0; /* 2 */
+    *height: 13px; /* 3 */
+    *width: 13px; /* 3 */
+}
+
+/**
+ * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.
+ * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome
+ *    (include `-moz` to future-proof).
+ */
+
+input[type="search"] {
+    -webkit-appearance: textfield; /* 1 */
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box; /* 2 */
+    box-sizing: content-box;
+}
+
+/**
+ * Remove inner padding and search cancel button in Safari 5 and Chrome
+ * on OS X.
+ */
+
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+
+/**
+ * Remove inner padding and border in Firefox 3+.
+ */
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/**
+ * 1. Remove default vertical scrollbar in IE 6/7/8/9.
+ * 2. Improve readability and alignment in all browsers.
+ */
+
+textarea {
+    overflow: auto; /* 1 */
+    vertical-align: top; /* 2 */
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+/**
+ * Remove most spacing between table cells.
+ */
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+  </style>
+
+  <style type="text/css">
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+  }
+  body {
+    background: #fff;
+    font-family: "Source Sans Pro", "Helvetica Neueue", Helvetica, sans;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6em;
+  }
+  #content {
+    width: 70%;
+    max-width: 850px;
+    float: left;
+    padding: 30px 60px;
+    border-left: 1px solid #ddd;
+  }
+  #sidebar {
+    width: 25%;
+    float: left;
+    padding: 30px;
+    overflow: hidden;
+  }
+  #nav {
+    font-size: 130%;
+    margin: 0 0 15px 0;
+  }
+
+  #top {
+    display: block;
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    font-size: .85em;
+    text-transform: uppercase;
+  }
+
+  #footer {
+    font-size: .75em;
+    padding: 5px 30px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+  }
+    #footer p {
+      margin: 0 0 0 30px;
+      display: inline-block;
+    }
+
+  h1, h2, h3, h4, h5 {
+    font-weight: 300;
+  }
+  h1 {
+    font-size: 2.5em;
+    line-height: 1.1em;
+    margin: 0 0 .50em 0;
+  }
+
+  h2 {
+    font-size: 1.75em;
+    margin: 1em 0 .50em 0;
+  }
+
+  h3 {
+    margin: 25px 0 10px 0;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 105%;
+  }
+
+  a {
+    color: #058;
+    text-decoration: none;
+    transition: color .3s ease-in-out;
+  }
+
+  a:hover {
+    color: #e08524;
+    transition: color .3s ease-in-out;
+  }
+
+  pre, code, .mono, .name {
+    font-family: "Ubuntu Mono", "Cousine", "DejaVu Sans Mono", monospace;
+  }
+
+  .title .name {
+    font-weight: bold;
+  }
+  .section-title {
+    margin-top: 2em;
+  }
+  .ident {
+    color: #900;
+  }
+
+  code {
+    background: #f9f9f9;
+  } 
+
+  pre {
+    background: #fefefe;
+    border: 1px solid #ddd;
+    box-shadow: 2px 2px 0 #f3f3f3;
+    margin: 0 30px;
+    padding: 15px 30px;
+  }
+
+  .codehilite {
+    margin: 0 30px 10px 30px;
+  }
+
+    .codehilite pre {
+      margin: 0;
+    }
+    .codehilite .err { background: #ff3300; color: #fff !important; } 
+
+  table#module-list {
+    font-size: 110%;
+  }
+
+    table#module-list tr td:first-child {
+      padding-right: 10px;
+      white-space: nowrap;
+    }
+
+    table#module-list td {
+      vertical-align: top;
+      padding-bottom: 8px;
+    }
+
+      table#module-list td p {
+        margin: 0 0 7px 0;
+      }
+
+  .def {
+    display: table;
+  }
+
+    .def p {
+      display: table-cell;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .def p:first-child {
+      white-space: nowrap;
+    }
+
+    .def p:last-child {
+      width: 100%;
+    }
+
+
+  #index {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+    ul#index .class_name {
+      /* font-size: 110%; */
+      font-weight: bold;
+    }
+    #index ul {
+      margin: 0;
+    }
+
+  .item {
+    margin: 0 0 15px 0;
+  }
+
+    .item .class {
+      margin: 0 0 25px 30px;
+    }
+
+      .item .class ul.class_list {
+        margin: 0 0 20px 0;
+      }
+
+    .item .name {
+      background: #fafafa;
+      margin: 0;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 3px;
+      display: inline-block;
+      min-width: 40%;
+    }
+      .item .name:hover {
+        background: #f6f6f6;
+      }
+
+    .item .empty_desc {
+      margin: 0 0 5px 0;
+      padding: 0;
+    }
+
+    .item .inheritance {
+      margin: 3px 0 0 30px;
+    }
+
+    .item .inherited {
+      color: #666;
+    }
+
+    .item .desc {
+      padding: 0 8px;
+      margin: 0;
+    }
+
+      .item .desc p {
+        margin: 0 0 10px 0;
+      }
+
+    .source_cont {
+      margin: 0;
+      padding: 0;
+    }
+
+    .source_link a {
+      background: #ffc300;
+      font-weight: 400;
+      font-size: .75em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 1px 1px 0 #f4b700;
+      
+      padding: 3px 8px;
+      border-radius: 2px;
+      transition: background .3s ease-in-out;
+    }
+      .source_link a:hover {
+        background: #FF7200;
+        text-shadow: none;
+        transition: background .3s ease-in-out;
+      }
+
+    .source {
+      display: none;
+      max-height: 600px;
+      overflow-y: scroll;
+      margin-bottom: 15px;
+    }
+
+      .source .codehilite {
+        margin: 0;
+      }
+
+  .desc h1, .desc h2, .desc h3 {
+    font-size: 100% !important;
+  }
+  .clear {
+    clear: both;
+  }
+
+  @media all and (max-width: 950px) {
+    #sidebar {
+      width: 35%;
+    }
+    #content {
+      width: 65%;
+    }
+  }
+  @media all and (max-width: 650px) {
+    #top {
+      display: none;
+    }
+    #sidebar {
+      float: none;
+      width: auto;
+    }
+    #content {
+      float: none;
+      width: auto;
+      padding: 30px;
+    }
+
+    #index ul {
+      padding: 0;
+      margin-bottom: 15px;
+    }
+    #index ul li {
+      display: inline-block;
+      margin-right: 30px;
+    }
+    #footer {
+      text-align: left;
+    }
+    #footer p {
+      display: block;
+      margin: inherit;
+    }
+  }
+
+  /*****************************/
+
+  </style>
+
+  <style type="text/css">
+  .codehilite .hll { background-color: #ffffcc }
+.codehilite  { background: #f8f8f8; }
+.codehilite .c { color: #408080; font-style: italic } /* Comment */
+.codehilite .err { border: 1px solid #FF0000 } /* Error */
+.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
+.codehilite .o { color: #666666 } /* Operator */
+.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
+.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
+.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
+.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
+.codehilite .gd { color: #A00000 } /* Generic.Deleted */
+.codehilite .ge { font-style: italic } /* Generic.Emph */
+.codehilite .gr { color: #FF0000 } /* Generic.Error */
+.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.codehilite .gi { color: #00A000 } /* Generic.Inserted */
+.codehilite .go { color: #888888 } /* Generic.Output */
+.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.codehilite .gs { font-weight: bold } /* Generic.Strong */
+.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.codehilite .gt { color: #0044DD } /* Generic.Traceback */
+.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
+.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.codehilite .kt { color: #B00040 } /* Keyword.Type */
+.codehilite .m { color: #666666 } /* Literal.Number */
+.codehilite .s { color: #BA2121 } /* Literal.String */
+.codehilite .na { color: #7D9029 } /* Name.Attribute */
+.codehilite .nb { color: #008000 } /* Name.Builtin */
+.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.codehilite .no { color: #880000 } /* Name.Constant */
+.codehilite .nd { color: #AA22FF } /* Name.Decorator */
+.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.codehilite .nf { color: #0000FF } /* Name.Function */
+.codehilite .nl { color: #A0A000 } /* Name.Label */
+.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.codehilite .nv { color: #19177C } /* Name.Variable */
+.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
+.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
+.codehilite .mf { color: #666666 } /* Literal.Number.Float */
+.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
+.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
+.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
+.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
+.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
+.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
+.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.codehilite .sx { color: #008000 } /* Literal.String.Other */
+.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
+.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
+.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
+.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.codehilite .vc { color: #19177C } /* Name.Variable.Class */
+.codehilite .vg { color: #19177C } /* Name.Variable.Global */
+.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
+.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
+  </style>
+
+  <style type="text/css">
+  
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   These examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 35em) {
+    /* Style adjustments for viewports that meet the condition */
+}
+
+@media print,
+       (-o-min-device-pixel-ratio: 5/4),
+       (-webkit-min-device-pixel-ratio: 1.25),
+       (min-resolution: 120dpi) {
+    /* Style adjustments for high resolution devices */
+}
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: h5bp.com/r
+   ========================================================================== */
+
+@media print {
+    * {
+        background: transparent !important;
+        color: #000 !important; /* Black prints faster: h5bp.com/s */
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+
+    /*
+     * Don't show links for images, or javascript/internal links
+     */
+
+    .ir a:after,
+    a[href^="javascript:"]:after,
+    a[href^="#"]:after {
+        content: "";
+    }
+
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group; /* h5bp.com/t */
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    @page {
+        margin: 0.5cm;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
+}
+
+  </style>
+
+  <script type="text/javascript">
+  function toggle(id, $link) {
+    $node = document.getElementById(id);
+    if (!$node)
+    return;
+    if (!$node.style.display || $node.style.display == 'none') {
+    $node.style.display = 'block';
+    $link.innerHTML = 'Hide source &nequiv;';
+    } else {
+    $node.style.display = 'none';
+    $link.innerHTML = 'Show source &equiv;';
+    }
+  }
+  </script>
+</head>
+<body>
+<a href="#" id="top">Top</a>
+
+<div id="container">
+    
+  
+  <div id="sidebar">
+    <h1>Index</h1>
+    <ul id="index">
+
+
+
+    <li class="set"><h3><a href="#header-submodules">Sub-modules</a></h3>
+      <ul>
+        <li class="mono"><a href="chassat.m.html">rpsfpy.chassat</a></li>
+        <li class="mono"><a href="rpsf.m.html">rpsfpy.rpsf</a></li>
+        <li class="mono"><a href="test.m.html">rpsfpy.test</a></li>
+        <li class="mono"><a href="zernike.m.html">rpsfpy.zernike</a></li>
+      </ul>
+    </li>
+    </ul>
+  </div>
+
+    <article id="content">
+      
+  
+
+  
+
+
+  <header id="section-intro">
+  <h1 class="title"><span class="name">rpsfpy</span> module</h1>
+  <p>RPSFpy - PSF reconstruction for GLAO</p>
+<p>This is a set of tools to reconstruct PSFs of GLAO systems, taking
+into account the anisoplanetism effect.</p>
+<h2>Method</h2>
+<p>The PSF estimation method is the one described in [1]. The basic idea is to approximate the 
+residual phase in WFM considering the most dominant source of variance, the effect of anisoplanatism.
+The PSF is estimated via the OTF computed from the structure function. The structure function is approximated 
+by the sum of three components, where only the effect of anisoplanetism and the fitting error are considered. 
+These effects are related to the AO correction by LGSs and one NGS.</p>
+<h2>Features</h2>
+<ol>
+<li>Compute PSFs (or just the OTFs) in arbitrary positions in the Field of View</li>
+<li>Computation of the LGS structure function is done in parallel</li>
+<li>Several terms of the LGS structure function and the Fitting error structure function are stored in a library 
+to speed up posterior computations</li>
+</ol>
+<h2>Dependencies</h2>
+<p>This software only runs on Linux systems.
+It has the following dependencies:</p>
+<ol>
+<li>a Python 2.7 distribution;</li>
+<li>Numpy package;</li>
+<li>Scipy package;</li>
+<li>pyfits OR astropy package.</li>
+</ol>
+<p>We suggest the use of the Anaconda Python platform as it includes all the necessary dependencies. Download at <a href="https://www.continuum.io/downloads">https://www.continuum.io/downloads</a></p>
+<h2>Installation</h2>
+<p>The software is distributed in the form of a Python package which can be downloaded from its public repository at: </p>
+<p><a href="https://github.com/mdusilva/rpsfpy">https://github.com/mdusilva/rpsfpy</a></p>
+<p>We suggest that it should be installed in its own virtual environment. To create and use a virtual environment in the Anaconda distribution 
+follow the instructions in <a href="https://conda.io/docs/using/envs.html">https://conda.io/docs/using/envs.html</a></p>
+<p>To install the package (instructions for Linux):</p>
+<p>create a new temporary directory in your home directory:</p>
+<div class="codehilite"><pre><span></span>mkdir rpsf
+</pre></div>
+
+
+<p>download the contents of the repository to the new directory. The directory should now contain a file named <strong>setup.py</strong> and a folder <strong>rpsfpy</strong>.
+in the terminal, execute the command:</p>
+<div class="codehilite"><pre><span></span>python setup.py install
+</pre></div>
+
+
+<p>you may now remove the temporary directory</p>
+<div class="codehilite"><pre><span></span><span class="nb">cd</span> ..
+rm -r rpsf
+</pre></div>
+
+
+<h2>Input</h2>
+<p>The following inputs are needed to compute one or more PSFs:</p>
+<ol>
+<li>atmospheric parameters: r0 (at 500 nm), cn2 profile (normalized) and respective height profile (in m) and 
+outer_scale (in m). These parameters are passed as an <a href="rpsf.m.html#rpsfpy.rpsf.Atmosphere"><code>rpsfpy.rpsf.Atmosphere</code></a> object.</li>
+<li>parameters related to the AO system: LGSs coordinates, LGSs height, number of corrected Zernike modes and
+the telescope diameter. These parameters are stored together in the Python dictionary <a href="rpsf.m.html#rpsfpy.rpsf.ao_systems"><code>rpsfpy.rpsf.ao_systems</code></a> 
+labeled by the AO system name which is created and managed by <a href="rpsf.m.html#rpsfpy.rpsf.AOsystem"><code>rpsfpy.rpsf.AOsystem</code></a>.
+Note that the PSF recontruction method was created with the specific case of MUSE-GALACSI in mind and may not work 
+properly with other AO systems.</li>
+<li>The position of the NGS(s) in the FoV (in arcsec) and the image sampling (diameter of the telescope pupil 
+in pixels), passed to a <a href="rpsf.m.html#rpsfpy.rpsf.Reconstruct"><code>rpsfpy.rpsf.Reconstruct</code></a> object. Finally, the coordinates in the FoV (in arcsec) where 
+to compute the PSFs and wavelength (in nm), passed to <a href="rpsf.m.html#rpsfpy.rpsf.Reconstruct.psf"><code>rpsfpy.rpsf.Reconstruct.psf</code></a> method. </li>
+</ol>
+<h2>Computing PSFs</h2>
+<p>To compute one or more PSFs do the following:</p>
+<p>Import this package and Numpy</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">rpsfpy</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+</pre></div>
+
+
+<p>Define the Cn2 profile and height of the respective atmospheric layers (in this example we have two layers)</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">cn2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.3</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">h</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">10000.</span><span class="p">]</span>
+</pre></div>
+
+
+<p>Create an instance of an <a href="rpsf.m.html#rpsfpy.rpsf.Atmosphere"><code>rpsfpy.rpsf.Atmosphere</code></a> object for a seeing of 0.8" at 500 nm, with 
+an outer scale of 25 m:</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">rpsfpy</span><span class="o">.</span><span class="n">Atmosphere</span><span class="p">(</span><span class="n">rzero</span><span class="o">=</span><span class="mf">0.12634</span><span class="p">,</span> <span class="n">cn2_profile</span><span class="o">=</span><span class="n">cn2</span><span class="p">,</span> <span class="n">h_profile</span><span class="o">=</span><span class="n">h</span><span class="p">,</span><span class="n">outer_scale</span><span class="o">=</span><span class="mf">25.</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Create a <a href="rpsf.m.html#rpsfpy.rpsf.Reconstruct"><code>rpsfpy.rpsf.Reconstruct</code></a> instance considering a GALACSI like <a href="rpsf.m.html#rpsfpy.rpsf.AOsystem"><code>rpsfpy.rpsf.AOsystem</code></a>, the atmosphere defined 
+by the previous <a href="rpsf.m.html#rpsfpy.rpsf.Atmosphere"><code>rpsfpy.rpsf.Atmosphere</code></a> instance, images with a size of 256 pixels (the image size is twice the diameter of the pupil) 
+and one NGS in the (50,0) direction, in arcsec, for tip-tilt correction. Note that the sampling is always done (by default) at the Nyquist rate.</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">r</span> <span class="o">=</span> <span class="n">rpsfpy</span><span class="o">.</span><span class="n">Reconstruct</span><span class="p">(</span><span class="n">pixdiam</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">ao_system</span><span class="o">=</span><span class="s2">&quot;GALACSI&quot;</span><span class="p">,</span> <span class="n">ngspos</span><span class="o">=</span><span class="p">[[</span><span class="mf">50.</span><span class="p">,</span><span class="mf">0.</span><span class="p">]],</span> <span class="n">atmosphere</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Create list of positions (in arcsec) where to compute the PSF:</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">objects</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">32.</span><span class="p">]]</span>
+</pre></div>
+
+
+<p>Finally, compute the PSF in those postions using the <a href="rpsf.m.html#rpsfpy.rpsf.Reconstruct.psf"><code>rpsfpy.rpsf.Reconstruct.psf</code></a> method in the <a href="rpsf.m.html#rpsfpy.rpsf.Reconstruct"><code>rpsfpy.rpsf.Reconstruct</code></a> instance: </p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">r</span><span class="o">.</span><span class="n">psf</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="mf">640.</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s2">&quot;psf.fits&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This will compute the PSF for the positions contained in the objects list, for a wavelength of 640 nm and output the result 
+to a <strong>psf.fits</strong> FITS file.</p>
+<h2>Computing PSFs with higher sampling rate</h2>
+<p>It is possible to compute PSFs with a sampling rate higher than the default Nyquist limit. To do it use the 
+<strong>scale</strong> keyword argument when calling the <a href="rpsf.m.html#rpsfpy.rpsf.Reconstruct.psf"><code>rpsfpy.rpsf.Reconstruct.psf</code></a> method:</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">r</span><span class="o">.</span><span class="n">psf</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="mf">640.</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s2">&quot;psf.fits&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This example produces a sampling rate 1.5 times the Nyquist rate.</p>
+<h2>Adding new AO systems</h2>
+<p>AO systems with different parameters can be added to the database (a Python dictionary). For example to add a new system composed of 
+three LGSs in a triangular configuration correcting 1000 zernike modes do:</p>
+<p>First create instance of the <a href="rpsf.m.html#rpsfpy.rpsf.AOsystem"><code>rpsfpy.rpsf.AOsystem</code></a> object</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">aosystems</span> <span class="o">=</span> <span class="n">rpsf</span><span class="o">.</span><span class="n">AOsystem</span><span class="p">()</span>
+</pre></div>
+
+
+<p>then use the <a href="rpsf.m.html#rpsfpy.rpsf.AOsystem.add"><code>rpsfpy.rpsf.AOsystem.add</code></a> method</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">aosystems</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;new_AO&quot;</span><span class="p">,</span> <span class="n">lgspos</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">32.</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">32.</span><span class="p">,</span><span class="o">-</span><span class="mf">32.</span><span class="p">],</span> <span class="p">[</span><span class="mf">32.</span><span class="p">,</span><span class="o">-</span><span class="mf">32.</span><span class="p">]],</span> <span class="n">lgsheight</span><span class="o">=</span><span class="mf">90000.</span><span class="p">,</span> <span class="n">zmodes</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">diameter</span><span class="o">=</span><span class="mf">8.</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This will create a new entry in the dictionary with the key 'new_AO' (the name we are giving the AO system). 
+Note that we must pass the parameters lgspos, a list of the directions of the LGSs of the AO system (in arcsec) 
+lgsheight, the height of the LGSs (in m); zmodes, the number of zernike modes corrected by the AO system; 
+and diameter, the diameter of the telescope (in m).</p>
+<p>To view the AO systems that currently available for PSF computations do:</p>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">aosystems</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+</pre></div>
+
+
+<p>which will give the output:</p>
+<div class="codehilite"><pre><span></span><span class="n">new_AO</span>
+<span class="o">------------</span>
+<span class="n">LGSs</span> <span class="n">coordinates</span> <span class="o">=</span>  <span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">32.0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">32.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">32.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">32.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">32.0</span><span class="p">]]</span>
+<span class="n">LGSs</span> <span class="n">height</span> <span class="o">=</span>  <span class="mf">90000.0</span>
+<span class="n">Corrected</span> <span class="n">Zernike</span> <span class="n">modes</span> <span class="o">=</span>  <span class="mi">1000</span>
+<span class="n">Telescope</span> <span class="n">diameter</span> <span class="o">=</span>  <span class="mf">8.0</span>
+<span class="o">------------</span>
+<span class="n">GALACSI</span>
+<span class="o">------------</span>
+<span class="n">LGSs</span> <span class="n">coordinates</span> <span class="o">=</span>  <span class="p">[[</span><span class="mf">32.0</span><span class="p">,</span> <span class="mf">32.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">32.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">32.0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">32.0</span><span class="p">,</span> <span class="mf">32.0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">32.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">32.0</span><span class="p">]]</span>
+<span class="n">LGSs</span> <span class="n">height</span> <span class="o">=</span>  <span class="mf">90000.0</span>
+<span class="n">Corrected</span> <span class="n">Zernike</span> <span class="n">modes</span> <span class="o">=</span>  <span class="mi">980</span>
+<span class="n">Telescope</span> <span class="n">diamete</span>
+</pre></div>
+
+
+<hr />
+<p>[1] Villecroze, R., "Modelisation d'un systeme d'optique adaptative a
+grand champ pour la reconstruction de la reponse
+impulsionnelle multi-spectrale des futurs
+spectro-imageurs 3D du VLT et de l'ELT",  Lyon: Universite Claude Bernard Lyon 1, 2014.</p>
+  
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rpsfpy', this);">Show source &equiv;</a></p>
+  <div id="source-rpsfpy" class="source">
+    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">RPSFpy - PSF reconstruction for GLAO</span>
+
+<span class="sd">This is a set of tools to reconstruct PSFs of GLAO systems, taking</span>
+<span class="sd">into account the anisoplanetism effect.</span>
+
+<span class="sd">Method</span>
+<span class="sd">------</span>
+<span class="sd">The PSF estimation method is the one described in [1]. The basic idea is to approximate the </span>
+<span class="sd">residual phase in WFM considering the most dominant source of variance, the effect of anisoplanatism.</span>
+<span class="sd">The PSF is estimated via the OTF computed from the structure function. The structure function is approximated </span>
+<span class="sd">by the sum of three components, where only the effect of anisoplanetism and the fitting error are considered. </span>
+<span class="sd">These effects are related to the AO correction by LGSs and one NGS.</span>
+
+
+<span class="sd">Features</span>
+<span class="sd">--------</span>
+<span class="sd">1. Compute PSFs (or just the OTFs) in arbitrary positions in the Field of View</span>
+<span class="sd">2. Computation of the LGS structure function is done in parallel</span>
+<span class="sd">3. Several terms of the LGS structure function and the Fitting error structure function are stored in a library </span>
+<span class="sd">to speed up posterior computations</span>
+
+<span class="sd">Dependencies</span>
+<span class="sd">------------</span>
+<span class="sd">This software only runs on Linux systems.</span>
+<span class="sd">It has the following dependencies:</span>
+
+<span class="sd">1. a Python 2.7 distribution;</span>
+<span class="sd">2. Numpy package;</span>
+<span class="sd">3. Scipy package;</span>
+<span class="sd">4. pyfits OR astropy package.</span>
+
+<span class="sd">We suggest the use of the Anaconda Python platform as it includes all the necessary dependencies. Download at &lt;https://www.continuum.io/downloads&gt;</span>
+
+<span class="sd">Installation</span>
+<span class="sd">------------</span>
+<span class="sd">The software is distributed in the form of a Python package which can be downloaded from its public repository at: </span>
+<span class="sd"> </span>
+<span class="sd">&lt;https://github.com/mdusilva/rpsfpy&gt;</span>
+
+<span class="sd">We suggest that it should be installed in its own virtual environment. To create and use a virtual environment in the Anaconda distribution </span>
+<span class="sd">follow the instructions in &lt;https://conda.io/docs/using/envs.html&gt;</span>
+<span class="sd"> </span>
+<span class="sd">To install the package (instructions for Linux):</span>
+<span class="sd"> </span>
+<span class="sd">create a new temporary directory in your home directory:</span>
+
+<span class="sd">    </span>
+<span class="sd">    #!bash</span>
+<span class="sd">    mkdir rpsf</span>
+
+
+<span class="sd">download the contents of the repository to the new directory. The directory should now contain a file named **setup.py** and a folder **rpsfpy**.</span>
+<span class="sd">in the terminal, execute the command:</span>
+
+
+<span class="sd">    #!bash</span>
+<span class="sd">    python setup.py install</span>
+
+
+<span class="sd">you may now remove the temporary directory</span>
+
+
+<span class="sd">    #!bash</span>
+<span class="sd">    cd ..</span>
+<span class="sd">    rm -r rpsf</span>
+
+
+<span class="sd">Input</span>
+<span class="sd">-----</span>
+<span class="sd">The following inputs are needed to compute one or more PSFs:</span>
+
+<span class="sd">1. atmospheric parameters: r0 (at 500 nm), cn2 profile (normalized) and respective height profile (in m) and </span>
+<span class="sd">outer_scale (in m). These parameters are passed as an `rpsfpy.rpsf.Atmosphere` object.</span>
+<span class="sd">2. parameters related to the AO system: LGSs coordinates, LGSs height, number of corrected Zernike modes and</span>
+<span class="sd">the telescope diameter. These parameters are stored together in the Python dictionary `rpsfpy.rpsf.ao_systems` </span>
+<span class="sd">labeled by the AO system name which is created and managed by `rpsfpy.rpsf.AOsystem`.</span>
+<span class="sd">Note that the PSF recontruction method was created with the specific case of MUSE-GALACSI in mind and may not work </span>
+<span class="sd">properly with other AO systems.</span>
+<span class="sd">3. The position of the NGS(s) in the FoV (in arcsec) and the image sampling (diameter of the telescope pupil </span>
+<span class="sd">in pixels), passed to a `rpsfpy.rpsf.Reconstruct` object. Finally, the coordinates in the FoV (in arcsec) where </span>
+<span class="sd">to compute the PSFs and wavelength (in nm), passed to `rpsfpy.rpsf.Reconstruct.psf` method. </span>
+
+
+<span class="sd">Computing PSFs</span>
+<span class="sd">--------------</span>
+<span class="sd">To compute one or more PSFs do the following:</span>
+
+<span class="sd">Import this package and Numpy</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; import rpsfpy</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+
+<span class="sd">Define the Cn2 profile and height of the respective atmospheric layers (in this example we have two layers)</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; cn2 = [0.7,0.3]</span>
+<span class="sd">    &gt;&gt;&gt; h = [0.,10000.]</span>
+
+
+<span class="sd">Create an instance of an `rpsfpy.rpsf.Atmosphere` object for a seeing of 0.8&quot; at 500 nm, with </span>
+<span class="sd">an outer scale of 25 m:</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; a = rpsfpy.Atmosphere(rzero=0.12634, cn2_profile=cn2, h_profile=h,outer_scale=25.)</span>
+
+
+<span class="sd">Create a `rpsfpy.rpsf.Reconstruct` instance considering a GALACSI like `rpsfpy.rpsf.AOsystem`, the atmosphere defined </span>
+<span class="sd">by the previous `rpsfpy.rpsf.Atmosphere` instance, images with a size of 256 pixels (the image size is twice the diameter of the pupil) </span>
+<span class="sd">and one NGS in the (50,0) direction, in arcsec, for tip-tilt correction. Note that the sampling is always done (by default) at the Nyquist rate.</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; r = rpsfpy.Reconstruct(pixdiam=128, ao_system=&quot;GALACSI&quot;, ngspos=[[50.,0.]], atmosphere=a)</span>
+
+
+<span class="sd">Create list of positions (in arcsec) where to compute the PSF:</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; objects = [[0.,0.], [0., 32.]]</span>
+
+
+<span class="sd">Finally, compute the PSF in those postions using the `rpsfpy.rpsf.Reconstruct.psf` method in the `rpsfpy.rpsf.Reconstruct` instance: </span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; r.psf(objects, 640., out=&quot;psf.fits&quot;)</span>
+
+
+<span class="sd">This will compute the PSF for the positions contained in the objects list, for a wavelength of 640 nm and output the result </span>
+<span class="sd">to a **psf.fits** FITS file.</span>
+
+<span class="sd">Computing PSFs with higher sampling rate</span>
+<span class="sd">----------------------------------------</span>
+<span class="sd">It is possible to compute PSFs with a sampling rate higher than the default Nyquist limit. To do it use the </span>
+<span class="sd">**scale** keyword argument when calling the `rpsfpy.rpsf.Reconstruct.psf` method:</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; r.psf(objects, 640., scale=1.5, out=&quot;psf.fits&quot;)</span>
+
+
+<span class="sd">This example produces a sampling rate 1.5 times the Nyquist rate.</span>
+
+
+<span class="sd">Adding new AO systems</span>
+<span class="sd">---------------------</span>
+<span class="sd">AO systems with different parameters can be added to the database (a Python dictionary). For example to add a new system composed of </span>
+<span class="sd">three LGSs in a triangular configuration correcting 1000 zernike modes do:</span>
+
+<span class="sd">First create instance of the `rpsfpy.rpsf.AOsystem` object</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; aosystems = rpsf.AOsystem()</span>
+
+
+<span class="sd">then use the `rpsfpy.rpsf.AOsystem.add` method</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; aosystems.add(name=&quot;new_AO&quot;, lgspos=[[0.,32.], [-32.,-32.], [32.,-32.]], lgsheight=90000., zmodes=1000, diameter=8.)</span>
+
+
+<span class="sd">This will create a new entry in the dictionary with the key &#39;new_AO&#39; (the name we are giving the AO system). </span>
+<span class="sd">Note that we must pass the parameters lgspos, a list of the directions of the LGSs of the AO system (in arcsec) </span>
+<span class="sd">lgsheight, the height of the LGSs (in m); zmodes, the number of zernike modes corrected by the AO system; </span>
+<span class="sd">and diameter, the diameter of the telescope (in m).</span>
+
+<span class="sd">To view the AO systems that currently available for PSF computations do:</span>
+
+
+<span class="sd">    #!python</span>
+<span class="sd">    &gt;&gt;&gt; aosystems.view()</span>
+
+
+<span class="sd">which will give the output:</span>
+
+<span class="sd">    #!python</span>
+<span class="sd">    new_AO</span>
+<span class="sd">    ------------</span>
+<span class="sd">    LGSs coordinates =  [[0.0, 32.0], [-32.0, -32.0], [32.0, -32.0]]</span>
+<span class="sd">    LGSs height =  90000.0</span>
+<span class="sd">    Corrected Zernike modes =  1000</span>
+<span class="sd">    Telescope diameter =  8.0</span>
+<span class="sd">    ------------</span>
+<span class="sd">    GALACSI</span>
+<span class="sd">    ------------</span>
+<span class="sd">    LGSs coordinates =  [[32.0, 32.0], [32.0, -32.0], [-32.0, 32.0], [-32.0, -32.0]]</span>
+<span class="sd">    LGSs height =  90000.0</span>
+<span class="sd">    Corrected Zernike modes =  980</span>
+<span class="sd">    Telescope diamete</span>
+
+
+
+<span class="sd">--------------</span>
+<span class="sd">[1] Villecroze, R., &quot;Modelisation d&#39;un systeme d&#39;optique adaptative a</span>
+<span class="sd">grand champ pour la reconstruction de la reponse</span>
+<span class="sd">impulsionnelle multi-spectrale des futurs</span>
+<span class="sd">spectro-imageurs 3D du VLT et de l&#39;ELT&quot;,  Lyon: Universite Claude Bernard Lyon 1, 2014.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">rpsf</span> <span class="kn">import</span> <span class="n">polar2</span><span class="p">,</span> <span class="n">Atmosphere</span><span class="p">,</span> <span class="n">Reconstruct</span><span class="p">,</span> <span class="n">StructureNGS</span><span class="p">,</span> <span class="n">StructureLGS</span><span class="p">,</span> <span class="n">AOsystem</span><span class="p">,</span> <span class="n">StructureFit</span>
+<span class="kn">import</span> <span class="nn">zernike</span>
+<span class="kn">import</span> <span class="nn">copy_reg</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
+
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;0.3.2&#39;</span>
+
+<span class="k">def</span> <span class="nf">_pickle_method</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+      <span class="n">func_name</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">__name__</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">im_self</span>
+      <span class="n">cls</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">im_class</span>
+      <span class="k">if</span> <span class="n">func_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">func_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">):</span>
+	<span class="n">cls_name</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">cls_name</span><span class="p">:</span> <span class="n">func_name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">cls_name</span> <span class="o">+</span> <span class="n">func_name</span>
+      <span class="k">return</span> <span class="n">_unpickle_method</span><span class="p">,</span> <span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span>
+    
+<span class="k">def</span> <span class="nf">_unpickle_method</span><span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">cls</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">mro</span><span class="p">():</span>
+	<span class="k">try</span><span class="p">:</span>
+	  <span class="n">func</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span>
+	<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+	  <span class="k">pass</span>
+	<span class="k">else</span><span class="p">:</span>
+	  <span class="k">break</span>
+      <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span>
+<span class="n">copy_reg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">MethodType</span><span class="p">,</span><span class="n">_pickle_method</span><span class="p">,</span> <span class="n">_unpickle_method</span><span class="p">)</span>
+</pre></div>
+
+  </div>
+
+  </header>
+
+  <section id="section-items">
+
+
+
+    <h2 class="section-title" id="header-submodules">Sub-modules</h2>
+      <div class="item">
+      <p class="name"><a href="chassat.m.html">rpsfpy.chassat</a></p>
+      
+  
+    <div class="desc"><p>Functions to compute covariance between the Zernike coefficients of two spherical waves (cf. Chassat 1992)</p></div>
+
+      </div>
+      <div class="item">
+      <p class="name"><a href="rpsf.m.html">rpsfpy.rpsf</a></p>
+      
+  
+    <div class="desc"><p>Module with functions to compute estimation of PSFs (and/or OTFs). Includes functions to compute structure functions.</p></div>
+
+      </div>
+      <div class="item">
+      <p class="name"><a href="test.m.html">rpsfpy.test</a></p>
+      
+  
+
+      </div>
+      <div class="item">
+      <p class="name"><a href="zernike.m.html">rpsfpy.zernike</a></p>
+      
+  
+    <div class="desc"><p>Zernike - zernike polynomials tools for Python</p>
+<p>Set of tools to work with Zernike polynomials.</p></div>
+
+      </div>
+  </section>
+
+    </article>
+  <div class="clear"> </div>
+  <footer id="footer">
+    <p>
+      Documentation generated by
+      <a href="https://github.com/BurntSushi/pdoc">pdoc 0.3.2</a>
+    </p>
+
+    <p>pdoc is in the public domain with the
+      <a href="http://unlicense.org">UNLICENSE</a></p>
+
+    <p>Design by <a href="http://nadh.in">Kailash Nadh</a></p>
+  </footer>
+</div>
+</body>
+</html>
