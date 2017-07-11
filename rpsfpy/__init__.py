@@ -115,7 +115,7 @@ and one NGS in the (50,0) direction, in arcsec, for tip-tilt correction. Note th
 
 
     #!python
-    >>> r = rpsfpy.Reconstruct(pixdiam=128, ao_system="GALACSI", ngspos=[[50.,0.]], atmosphere=a)
+    >>> r = rpsfpy.Reconstruct(pixdiam=128, aoname="GALACSI", ngspos=[[50.,0.]], atmosphere=a)
 
 
 Create list of positions (in arcsec) where to compute the PSF:
