@@ -1045,7 +1045,6 @@ table {
       <ul>
         <li class="mono"><a href="chassat.m.html">rpsfpy.chassat</a></li>
         <li class="mono"><a href="rpsf.m.html">rpsfpy.rpsf</a></li>
-        <li class="mono"><a href="test.m.html">rpsfpy.test</a></li>
         <li class="mono"><a href="zernike.m.html">rpsfpy.zernike</a></li>
       </ul>
     </li>
@@ -1147,7 +1146,7 @@ an outer scale of 25 m:</p>
 <p>Create a <a href="rpsf.m.html#rpsfpy.rpsf.Reconstruct"><code>rpsfpy.rpsf.Reconstruct</code></a> instance considering a GALACSI like <a href="rpsf.m.html#rpsfpy.rpsf.AOsystem"><code>rpsfpy.rpsf.AOsystem</code></a>, the atmosphere defined 
 by the previous <a href="rpsf.m.html#rpsfpy.rpsf.Atmosphere"><code>rpsfpy.rpsf.Atmosphere</code></a> instance, images with a size of 256 pixels (the image size is twice the diameter of the pupil) 
 and one NGS in the (50,0) direction, in arcsec, for tip-tilt correction. Note that the sampling is always done (by default) at the Nyquist rate.</p>
-<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">r</span> <span class="o">=</span> <span class="n">rpsfpy</span><span class="o">.</span><span class="n">Reconstruct</span><span class="p">(</span><span class="n">pixdiam</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">ao_system</span><span class="o">=</span><span class="s2">&quot;GALACSI&quot;</span><span class="p">,</span> <span class="n">ngspos</span><span class="o">=</span><span class="p">[[</span><span class="mf">50.</span><span class="p">,</span><span class="mf">0.</span><span class="p">]],</span> <span class="n">atmosphere</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">r</span> <span class="o">=</span> <span class="n">rpsfpy</span><span class="o">.</span><span class="n">Reconstruct</span><span class="p">(</span><span class="n">pixdiam</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">aoname</span><span class="o">=</span><span class="s2">&quot;GALACSI&quot;</span><span class="p">,</span> <span class="n">ngspos</span><span class="o">=</span><span class="p">[[</span><span class="mf">50.</span><span class="p">,</span><span class="mf">0.</span><span class="p">]],</span> <span class="n">atmosphere</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
 </pre></div>
 
 
@@ -1335,7 +1334,7 @@ spectro-imageurs 3D du VLT et de l'ELT",  Lyon: Universite Claude Bernard Lyon 1
 
 
 <span class="sd">    #!python</span>
-<span class="sd">    &gt;&gt;&gt; r = rpsfpy.Reconstruct(pixdiam=128, ao_system=&quot;GALACSI&quot;, ngspos=[[50.,0.]], atmosphere=a)</span>
+<span class="sd">    &gt;&gt;&gt; r = rpsfpy.Reconstruct(pixdiam=128, aoname=&quot;GALACSI&quot;, ngspos=[[50.,0.]], atmosphere=a)</span>
 
 
 <span class="sd">Create list of positions (in arcsec) where to compute the PSF:</span>
@@ -1473,12 +1472,6 @@ spectro-imageurs 3D du VLT et de l'ELT",  Lyon: Universite Claude Bernard Lyon 1
       
   
     <div class="desc"><p>Module with functions to compute estimation of PSFs (and/or OTFs). Includes functions to compute structure functions.</p></div>
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="test.m.html">rpsfpy.test</a></p>
-      
-  
 
       </div>
       <div class="item">
